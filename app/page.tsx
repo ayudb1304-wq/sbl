@@ -1,13 +1,12 @@
-import Link from "next/link"
 import { Container } from "@/components/Container"
 import { MatchCard } from "@/components/MatchCard"
 import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
 import { YourTeamsRail } from "@/components/YourTeamsRail"
+import { CategoryCarousel, type CarouselCategory } from "@/components/CategoryCarousel"
 import { getActiveSeason, getCategories, getSeasonMatches, getStandingsForGroup } from "@/lib/queries"
 import { rankGroup } from "@/lib/standings"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { branding } from "@/lib/branding"
-import type { EnrichedMatch } from "@/lib/queries"
 
 export const dynamic = "force-dynamic" // tournament data is live; never cache
 
@@ -42,6 +41,28 @@ export default async function Home() {
   const adminCli = createAdminClient()
   const { data: teamRows } = await adminCli.from("teams").select("id, name").eq("season_id", season.id)
   const teamsById = Object.fromEntries((teamRows ?? []).map(t => [t.id, { id: t.id, name: t.name }]))
+
+  // Pre-compute top-3 per group for the standings carousel.
+  const carouselData: CarouselCategory[] = []
+  for (const cat of categories) {
+    const sortedGroups = [...cat.groups].sort((a, b) => a.sort_order - b.sort_order)
+    const groups = await Promise.all(sortedGroups.map(async g => {
+      const standings = await getStandingsForGroup(g.id)
+      const groupMatches = matches.filter(m => m.group_id === g.id)
+      const ranked = rankGroup(standings, groupMatches).slice(0, 3)
+      return {
+        id: g.id,
+        code: g.code,
+        top: ranked.map(r => ({
+          teamId: r.team.id,
+          teamName: r.team.name,
+          points: r.points ?? 0,
+          position: r.position,
+        })),
+      }
+    }))
+    carouselData.push({ code: cat.code, name: cat.name, groups })
+  }
 
   return (
     <Container className="space-y-10">
@@ -98,17 +119,14 @@ export default async function Home() {
         </Section>
       )}
 
-      <section className="space-y-6">
-        <h2 className="text-xl font-semibold tracking-tight">Standings snapshot</h2>
+      <section className="space-y-4">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-xl font-semibold tracking-tight">Standings snapshot</h2>
+          <span className="text-xs text-[var(--muted)]">Auto-rotating · tap dots to pause</span>
+        </div>
         <div className="grid gap-6 md:grid-cols-3">
-          {categories.map(cat => (
-            <CategorySnapshot
-              key={cat.id}
-              code={cat.code}
-              name={cat.name}
-              groups={cat.groups}
-              matches={matches}
-            />
+          {carouselData.map(cat => (
+            <CategoryCarousel key={cat.code} category={cat} />
           ))}
         </div>
       </section>
@@ -129,42 +147,3 @@ function Section({ title, empty, children }: { title: string; empty?: string | n
   )
 }
 
-async function CategorySnapshot({
-  code, name, groups, matches,
-}: {
-  code: string
-  name: string
-  groups: { id: string; code: string; name: string; sort_order: number }[]
-  matches: EnrichedMatch[]
-}) {
-  const sortedGroups = [...groups].sort((a, b) => a.sort_order - b.sort_order)
-  const firstGroup = sortedGroups[0]
-  if (!firstGroup) return null
-  const standings = await getStandingsForGroup(firstGroup.id)
-  const groupMatches = matches.filter(m => m.group_id === firstGroup.id)
-  const ranked = rankGroup(standings, groupMatches)
-  const top3 = ranked.slice(0, 3)
-  return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold">{name}</h3>
-        <Link href={`/categories/${code}`} className="text-xs text-[var(--primary)] hover:underline">
-          View all →
-        </Link>
-      </div>
-      <p className="mt-1 text-xs text-[var(--muted)]">Group {firstGroup.code} top 3</p>
-      {top3.length === 0 ? (
-        <p className="mt-3 text-sm text-[var(--muted)]">No matches completed yet.</p>
-      ) : (
-        <ol className="mt-3 space-y-1 text-sm">
-          {top3.map(r => (
-            <li key={r.team.id} className="flex items-center justify-between">
-              <span><span className="mr-2 font-mono text-[var(--muted)]">{r.position}</span>{r.team.name}</span>
-              <span className="font-mono tabular-nums">{r.points ?? 0}</span>
-            </li>
-          ))}
-        </ol>
-      )}
-    </div>
-  )
-}
