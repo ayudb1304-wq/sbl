@@ -55,17 +55,19 @@ export function statusBadge(status: string): { label: string; tone: "live" | "do
  * what's live, what's finished, and what's still scheduled.
  */
 export function statusCardClasses(status: string): string {
+  // Each tinted state gets a 4px colored left accent on top of a saturated
+  // background tint, so live/done/walkover are obvious at a glance.
   switch (status) {
     case "in_progress":
-      return "bg-[var(--live-soft)] border-[var(--live)]/30"
+      return "bg-[var(--live-soft)] border border-[var(--live)]/40 border-l-4 border-l-[var(--live)]"
     case "completed":
-      return "bg-[var(--success-soft)] border-[var(--success)]/30"
+      return "bg-[var(--success-soft)] border border-[var(--success)]/40 border-l-4 border-l-[var(--success)]"
     case "walkover":
-      return "bg-[var(--warning-soft)] border-[var(--warning)]/30"
+      return "bg-[var(--warning-soft)] border border-[var(--warning)]/40 border-l-4 border-l-[var(--warning)]"
     case "cancelled":
-      return "bg-[var(--surface-alt)] border-[var(--border)] opacity-70"
+      return "bg-[var(--surface-alt)] border border-[var(--border)] opacity-60"
     case "scheduled":
     default:
-      return "bg-[var(--surface)] border-[var(--border)]"
+      return "bg-[var(--surface)] border border-[var(--border)]"
   }
 }

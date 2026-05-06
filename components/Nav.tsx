@@ -58,6 +58,7 @@ export async function Nav({ seasonName }: { seasonName: string | null }) {
             <NavLink href="/courts/1">Courts</NavLink>
             <NavLink href="/bracket/MB">Brackets</NavLink>
             <NavLink href="/predictions">Predict</NavLink>
+            <NavLink href="/predictions/leaderboard">Leaderboard</NavLink>
             {(user?.roles.includes("admin") || user?.roles.includes("scorer")) && <NavLink href="/scorer">Score</NavLink>}
             {user?.roles.includes("admin") && <NavLink href="/admin">Admin</NavLink>}
           </nav>

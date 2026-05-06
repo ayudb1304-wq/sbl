@@ -30,11 +30,11 @@
 
   /* Status */
   --live: #C84B30;
-  --live-soft: #FBE8E1;
+  --live-soft: #FCD2C2;
   --success: #4A7C59;
-  --success-soft: #E6EFE5;
+  --success-soft: #CFE5CD;
   --warning: #B5872C;
-  --warning-soft: #FAF1D6;
+  --warning-soft: #F7E2A0;
 
   /* Effects */
   --ring: 0 0 0 3px rgba(192, 98, 63, 0.25);
@@ -62,11 +62,11 @@
     --primary-soft: #382821;
 
     --live: #E55C42;
-    --live-soft: #3A211B;
+    --live-soft: #4F2A22;
     --success: #6E9B7C;
-    --success-soft: #1F2D24;
+    --success-soft: #244234;
     --warning: #D8A24A;
-    --warning-soft: #322713;
+    --warning-soft: #443419;
 
     --ring: 0 0 0 3px rgba(216, 130, 93, 0.35);
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
