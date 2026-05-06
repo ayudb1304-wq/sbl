@@ -5,7 +5,7 @@
 export const branding = {
   appName: "SBL",
   appTagline: "Sysfore Badminton League",
-  heroTagline: "Smash. Score. Bragging rights.",
+  heroTagline: "Where coworkers become rivals.",
   logoUrl: "/sbl-logo.png" as string | null,
   colors: {
     primary: "#1E2A6E",   // navy from the logo
