@@ -48,3 +48,24 @@ export function statusBadge(status: string): { label: string; tone: "live" | "do
     default:            return { label: status.toUpperCase(), tone: "soon" }
   }
 }
+
+/**
+ * Subtle background + border tints for cards/rows, keyed off match.status.
+ * Used by MatchCard and BracketMatch so a glance at the dashboard tells you
+ * what's live, what's finished, and what's still scheduled.
+ */
+export function statusCardClasses(status: string): string {
+  switch (status) {
+    case "in_progress":
+      return "bg-red-50/60 border-red-200 dark:bg-red-950/20 dark:border-red-900/50"
+    case "completed":
+      return "bg-emerald-50/60 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900/50"
+    case "walkover":
+      return "bg-amber-50/70 border-amber-200 dark:bg-amber-950/25 dark:border-amber-900/50"
+    case "cancelled":
+      return "bg-zinc-100/60 border-zinc-200 opacity-70 dark:bg-zinc-900/40 dark:border-zinc-800"
+    case "scheduled":
+    default:
+      return "bg-[var(--surface)] border-[var(--border)]"
+  }
+}

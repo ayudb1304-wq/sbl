@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { feederLabel } from "@/lib/queries"
-import { timeIST } from "@/lib/format"
+import { timeIST, statusCardClasses } from "@/lib/format"
 import { StatusPill } from "./StatusPill"
 import type { EnrichedMatch } from "@/lib/queries"
 import type { FeederSource } from "@/lib/supabase/types"
@@ -43,7 +43,7 @@ function BracketMatch({ m }: { m: EnrichedMatch }) {
   return (
     <Link
       href={`/matches/${m.id}`}
-      className="block rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 hover:border-[var(--primary)]"
+      className={`block rounded-lg border p-3 hover:border-[var(--primary)] ${statusCardClasses(m.status)}`}
     >
       <div className="flex items-center justify-between text-xs text-[var(--muted)]">
         <span className="font-mono">{m.round_label}</span>

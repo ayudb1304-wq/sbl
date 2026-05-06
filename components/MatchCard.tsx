@@ -1,7 +1,7 @@
 import Link from "next/link"
 import type { EnrichedMatch } from "@/lib/queries"
 import { feederLabel } from "@/lib/queries"
-import { timeIST, stageLabel } from "@/lib/format"
+import { timeIST, stageLabel, statusCardClasses } from "@/lib/format"
 import { StatusPill } from "./StatusPill"
 import type { FeederSource } from "@/lib/supabase/types"
 
@@ -15,7 +15,7 @@ export function MatchCard({ m }: { m: EnrichedMatch }) {
   return (
     <Link
       href={`/matches/${m.id}`}
-      className="block rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 transition hover:border-[var(--primary)]"
+      className={`block rounded-lg border p-3 transition hover:border-[var(--primary)] ${statusCardClasses(m.status)}`}
     >
       <div className="flex items-center justify-between text-xs text-[var(--muted)]">
         <span>{m.category.code} · {stageLabel(m.stage, m.round_label)}{m.group ? ` · Group ${m.group.code}` : ""}</span>
