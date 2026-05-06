@@ -155,12 +155,42 @@ export async function getCategoryByCode(
 
 export async function getStandingsForGroup(groupId: string): Promise<StandingWithTeam[]> {
   const sb = await createClient()
-  const { data, error } = await sb
-    .from("standings_view")
-    .select("*, team:teams ( id, name, seed, company )")
-    .eq("group_id", groupId)
-  if (error) throw error
-  return (data ?? []) as unknown as StandingWithTeam[]
+  // standings_view is a Postgres view, so PostgREST can't auto-join to teams.
+  // Fetch standings + teams in parallel and stitch by team_id.
+  const [sRes, tRes] = await Promise.all([
+    sb.from("standings_view").select("*").eq("group_id", groupId),
+    sb.from("teams").select("id, name, seed, company").eq("group_id", groupId),
+  ])
+  if (sRes.error) throw sRes.error
+  if (tRes.error) throw tRes.error
+  const standings = (sRes.data ?? []) as Standing[]
+  const teams = (tRes.data ?? []) as { id: string; name: string; seed: number | null; company: string | null }[]
+
+  // Include teams with no completed matches yet (zero-row standings) so the
+  // table shows everyone from the start of the day.
+  const standingsByTeam = new Map(standings.map(s => [s.team_id as string, s]))
+  const out: StandingWithTeam[] = []
+  for (const team of teams) {
+    const s = standingsByTeam.get(team.id)
+    out.push({
+      team: { id: team.id, name: team.name, seed: team.seed, company: team.company },
+      season_id: s?.season_id ?? null,
+      category_id: s?.category_id ?? null,
+      group_id: s?.group_id ?? groupId,
+      team_id: team.id,
+      matches_played: s?.matches_played ?? 0,
+      wins: s?.wins ?? 0,
+      losses: s?.losses ?? 0,
+      points: s?.points ?? 0,
+      sets_won: s?.sets_won ?? 0,
+      sets_lost: s?.sets_lost ?? 0,
+      set_diff: s?.set_diff ?? 0,
+      points_for: s?.points_for ?? 0,
+      points_against: s?.points_against ?? 0,
+      point_diff: s?.point_diff ?? 0,
+    })
+  }
+  return out
 }
 
 export async function getTeamById(id: string): Promise<TeamDetail | null> {
