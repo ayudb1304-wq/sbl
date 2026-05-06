@@ -3,7 +3,7 @@ import Link from "next/link"
 import { useEffect, useState, useTransition } from "react"
 import { getDeviceId } from "@/lib/device"
 import { setPrediction } from "@/lib/actions/engagement"
-import { stageLabel, timeIST } from "@/lib/format"
+import { stageLabel, statusCardClasses, timeIST } from "@/lib/format"
 import { pointsForStage } from "@/lib/predictions"
 
 export type PredictionMatch = {
@@ -49,14 +49,30 @@ export function PredictionCard({ match }: { match: PredictionMatch }) {
     match.status === "in_progress" ? "live" :
     "done"
 
+  // Outer card colour reflects the match status. For finished matches we
+  // amplify the wash if the user's pick resolved (green if right, red if wrong)
+  // so the leaderboard outcome is immediately visible.
+  const isFinished = match.status === "completed" || match.status === "walkover"
+  const myPickResolved = isFinished && pickedTeamId
+  const myPickRight = myPickResolved && match.winner_team_id === pickedTeamId
+  let cardClass = statusCardClasses(match.status)
+  if (myPickRight) {
+    cardClass = "bg-[var(--success-soft)] border border-[var(--success)]/60 border-l-4 border-l-[var(--success)] ring-1 ring-[var(--success)]/30"
+  } else if (myPickResolved && !myPickRight) {
+    cardClass = "bg-[var(--live-soft)] border border-[var(--live)]/60 border-l-4 border-l-[var(--live)]"
+  }
+
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+    <div className={`rounded-xl p-4 ${cardClass}`}>
       <div className="flex items-center justify-between text-xs">
-        <span className="font-mono text-[var(--muted)]">
+        <span className="font-mono text-[var(--muted-strong)]">
           {match.category_code} · {stageLabel(match.stage, match.round_label)}
         </span>
-        <span className="rounded-full border border-[var(--border)] px-2 py-0.5 font-semibold text-[var(--primary)]">
-          {points} pt{points === 1 ? "" : "s"}
+        <span
+          style={{ backgroundColor: "var(--surface)" }}
+          className="rounded-full border border-[var(--border)] px-2 py-0.5 font-semibold text-[var(--primary)]"
+        >
+          {myPickRight ? `+${points} pt${points === 1 ? "" : "s"}` : `${points} pt${points === 1 ? "" : "s"}`}
         </span>
       </div>
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
