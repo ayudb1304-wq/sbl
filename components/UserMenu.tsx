@@ -16,7 +16,14 @@ export async function UserMenu() {
     )
   }
 
-  const home = user.role === "admin" ? "/admin" : user.role === "scorer" ? "/scorer" : "/"
+  const isAdmin = user.roles.includes("admin")
+  const isScorer = user.roles.includes("scorer")
+  const home = isAdmin ? "/admin" : isScorer ? "/scorer" : "/"
+  const label =
+    isAdmin && isScorer ? "Admin · Scorer" :
+    isAdmin ? "Admin" :
+    isScorer ? "Scorer" :
+    user.email
 
   return (
     <div className="flex items-center gap-2 text-xs">
@@ -24,7 +31,7 @@ export async function UserMenu() {
         href={home}
         className="hidden sm:inline rounded-md border border-[var(--border)] px-2.5 py-1 text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--text)]"
       >
-        {user.role === "admin" ? "Admin" : user.role === "scorer" ? "Scorer" : user.email}
+        {label}
       </Link>
       <form action={signOut}>
         <button

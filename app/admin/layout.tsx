@@ -6,13 +6,13 @@ import { getCurrentUser } from "@/lib/auth"
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser()
   if (!user) redirect("/login?next=/admin")
-  if (user.role !== "admin") {
+  if (!user.roles.includes("admin")) {
     return (
       <Container className="max-w-md">
         <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 text-center">
           <h1 className="text-lg font-semibold">Admin only</h1>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            You&apos;re signed in as {user.email} (role: {user.role}). Ask an existing admin to grant you admin access.
+            You&apos;re signed in as {user.email} (roles: {user.roles.join(", ")}). Ask an existing admin to grant you admin access.
           </p>
           <Link href="/" className="mt-4 inline-block text-sm text-[var(--primary)] hover:underline">
             Back to tournament

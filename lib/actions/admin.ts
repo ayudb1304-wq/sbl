@@ -203,16 +203,23 @@ function resolveSource(
 
 // ---------- User management ----------
 
-export async function addAllowedUser(args: { email: string; role: "admin" | "scorer" }): Promise<Ok | Err> {
+export async function addAllowedUser(args: { email: string; roles: ("admin" | "scorer")[] }): Promise<Ok | Err> {
   try {
     await requireRole(["admin"])
     const email = args.email.trim().toLowerCase()
     if (!email.includes("@")) return { ok: false, error: "Enter a valid email." }
+    if (args.roles.length === 0) return { ok: false, error: "Pick at least one role." }
+    const primary: "admin" | "scorer" = args.roles.includes("admin") ? "admin" : "scorer"
     const admin = createAdminClient()
     const { error } = await admin
       .from("allowed_users")
-      .upsert({ email, role: args.role }, { onConflict: "email" })
+      .upsert({ email, roles: args.roles, role: primary }, { onConflict: "email" })
     if (error) throw error
+    // Sync to existing profile if any
+    await admin
+      .from("profiles")
+      .update({ roles: args.roles, role: primary })
+      .ilike("email", email)
     revalidatePath("/admin/users")
     return { ok: true }
   } catch (e) { return fail(e) }
@@ -229,17 +236,19 @@ export async function removeAllowedUser(email: string): Promise<Ok | Err> {
   } catch (e) { return fail(e) }
 }
 
-export async function updateAllowedUserRole(args: { email: string; role: "admin" | "scorer" }): Promise<Ok | Err> {
+export async function updateAllowedUserRoles(args: { email: string; roles: ("admin" | "scorer")[] }): Promise<Ok | Err> {
   try {
     await requireRole(["admin"])
+    if (args.roles.length === 0) return { ok: false, error: "Pick at least one role (or remove the user)." }
+    const primary: "admin" | "scorer" = args.roles.includes("admin") ? "admin" : "scorer"
     const admin = createAdminClient()
     const { error } = await admin
       .from("allowed_users")
-      .update({ role: args.role })
+      .update({ roles: args.roles, role: primary })
       .eq("email", args.email)
     if (error) throw error
-    // Also reflect on existing profile (so they don't have to re-login)
-    await admin.from("profiles").update({ role: args.role }).eq("email", args.email)
+    // Reflect on existing profile (so they don't have to re-login)
+    await admin.from("profiles").update({ roles: args.roles, role: primary }).eq("email", args.email)
     revalidatePath("/admin/users")
     return { ok: true }
   } catch (e) { return fail(e) }

@@ -14,7 +14,7 @@ export async function Nav({ seasonName }: { seasonName: string | null }) {
         <MobileMenu
           brand={branding.appName}
           seasonName={seasonName}
-          user={user ? { email: user.email, role: user.role } : null}
+          user={user ? { email: user.email, roles: user.roles } : null}
           signOutAction={signOut}
         />
         <Link href="/" className="flex items-baseline gap-2 font-semibold tracking-tight">
@@ -34,8 +34,8 @@ export async function Nav({ seasonName }: { seasonName: string | null }) {
             <span className="mx-1 h-4 w-px bg-[var(--border)]" />
             <NavLink href="/courts/1">Courts</NavLink>
             <NavLink href="/bracket/MB">Brackets</NavLink>
-            {user?.role === "scorer" && <NavLink href="/scorer">Score</NavLink>}
-            {user?.role === "admin" && <NavLink href="/admin">Admin</NavLink>}
+            {(user?.roles.includes("admin") || user?.roles.includes("scorer")) && <NavLink href="/scorer">Score</NavLink>}
+            {user?.roles.includes("admin") && <NavLink href="/admin">Admin</NavLink>}
           </nav>
           <UserMenu />
         </div>

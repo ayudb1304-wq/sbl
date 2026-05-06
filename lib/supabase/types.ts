@@ -17,16 +17,19 @@ export type Database = {
           created_at: string
           email: string
           role: Database["public"]["Enums"]["user_role"]
+          roles: Database["public"]["Enums"]["user_role"][]
         }
         Insert: {
           created_at?: string
           email: string
           role?: Database["public"]["Enums"]["user_role"]
+          roles?: Database["public"]["Enums"]["user_role"][]
         }
         Update: {
           created_at?: string
           email?: string
           role?: Database["public"]["Enums"]["user_role"]
+          roles?: Database["public"]["Enums"]["user_role"][]
         }
         Relationships: []
       }
@@ -309,6 +312,7 @@ export type Database = {
           full_name: string | null
           id: string
           role: Database["public"]["Enums"]["user_role"]
+          roles: Database["public"]["Enums"]["user_role"][]
           updated_at: string
         }
         Insert: {
@@ -318,6 +322,7 @@ export type Database = {
           full_name?: string | null
           id: string
           role?: Database["public"]["Enums"]["user_role"]
+          roles?: Database["public"]["Enums"]["user_role"][]
           updated_at?: string
         }
         Update: {
@@ -327,6 +332,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
+          roles?: Database["public"]["Enums"]["user_role"][]
           updated_at?: string
         }
         Relationships: []

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic"
 export default async function AdminUsersPage() {
   const admin = createAdminClient()
   const [allowedRes, profilesRes] = await Promise.all([
-    admin.from("allowed_users").select("email, role").order("email"),
+    admin.from("allowed_users").select("email, roles").order("email"),
     admin.from("profiles").select("email"),
   ])
   const allowed = allowedRes.data ?? []
@@ -15,7 +15,7 @@ export default async function AdminUsersPage() {
 
   const rows = allowed.map(a => ({
     email: a.email,
-    role: a.role as "admin" | "scorer" | "none",
+    roles: (a.roles ?? []) as ("admin" | "scorer" | "none")[],
     loggedIn: loggedIn.has(a.email.toLowerCase()),
   }))
 
@@ -24,7 +24,8 @@ export default async function AdminUsersPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Manage who can sign in. Adding an email here does NOT create an account — the user must request a magic link from /login. Their role syncs on first login.
+          Manage who can sign in. Adding an email here does NOT create an account — the user must request a magic link from /login. Roles sync on first login.
+          A single user can hold both roles (admin + scorer).
         </p>
       </header>
       <UserManager rows={rows} />

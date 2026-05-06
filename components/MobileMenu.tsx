@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 
 export type MobileMenuUser = {
   email: string
-  role: "admin" | "scorer" | "none"
+  roles: ("admin" | "scorer" | "none")[]
 } | null
 
 type Section = { label: string; links: { href: string; label: string; sublabel?: string }[] }
@@ -68,14 +68,16 @@ export function MobileMenu({
     return () => window.removeEventListener("keydown", onKey)
   }, [open])
 
+  const isAdmin = !!user?.roles.includes("admin")
+  const isScorer = !!user?.roles.includes("scorer")
   const sections: Section[] = [...PUBLIC_SECTIONS]
-  if (user?.role === "scorer" || user?.role === "admin") {
+  if (isAdmin || isScorer) {
     sections.push({
       label: "Scorer",
       links: [{ href: "/scorer", label: "Score matches" }],
     })
   }
-  if (user?.role === "admin") {
+  if (isAdmin) {
     sections.push({
       label: "Admin",
       links: [
@@ -204,7 +206,7 @@ export function MobileMenu({
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <div className="truncate font-medium">{user.email}</div>
-                <div className="text-xs text-[var(--muted)] capitalize">{user.role}</div>
+                <div className="text-xs text-[var(--muted)] capitalize">{user.roles.filter(r => r !== "none").join(" · ") || "no role"}</div>
               </div>
               <form action={signOutAction}>
                 <button className="rounded-md border border-[var(--border)] px-2.5 py-1 text-xs hover:border-[var(--primary)]">

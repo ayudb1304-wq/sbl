@@ -56,7 +56,7 @@ export async function updateGameScore(args: {
       .select("status, locked")
       .eq("id", game.match_id)
       .maybeSingle<{ status: string; locked: boolean }>()
-    if (match?.locked && user.role !== "admin") {
+    if (match?.locked && !user.roles.includes("admin")) {
       return { ok: false, error: "Match is locked. Ask an admin to unlock." }
     }
 
@@ -153,7 +153,7 @@ export async function setMatchWinner(args: {
       .eq("id", args.matchId)
       .maybeSingle<{ season_id: string; team_a_id: string | null; team_b_id: string | null; locked: boolean; status: string }>()
     if (!match) return { ok: false, error: "Match not found." }
-    if (match.locked && user.role !== "admin") return { ok: false, error: "Match is locked." }
+    if (match.locked && !user.roles.includes("admin")) return { ok: false, error: "Match is locked." }
     if (args.winnerTeamId !== match.team_a_id && args.winnerTeamId !== match.team_b_id) {
       return { ok: false, error: "Winner must be one of the two teams." }
     }
@@ -200,7 +200,7 @@ export async function resetMatch(matchId: string): Promise<ActionResult> {
       .select("locked")
       .eq("id", matchId)
       .maybeSingle<{ locked: boolean }>()
-    if (match?.locked && user.role !== "admin") return { ok: false, error: "Match is locked." }
+    if (match?.locked && !user.roles.includes("admin")) return { ok: false, error: "Match is locked." }
 
     await admin
       .from("games")

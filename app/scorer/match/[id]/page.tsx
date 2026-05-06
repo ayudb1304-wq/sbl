@@ -42,7 +42,7 @@ export default async function ScorerMatchPage({ params }: { params: Promise<{ id
           { label: stageLabel(m.stage, m.round_label) },
         ]} />
         <div className="flex gap-3 text-xs">
-          {user?.role === "admin" && (
+          {user?.roles.includes("admin") && (
             <Link href={`/admin/match/${id}`} className="text-[var(--primary)] hover:underline">Admin view</Link>
           )}
           <Link href={`/matches/${id}`} className="text-[var(--muted)] hover:underline">Public ↗</Link>

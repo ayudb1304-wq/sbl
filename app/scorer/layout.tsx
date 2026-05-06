@@ -6,7 +6,8 @@ import { getCurrentUser } from "@/lib/auth"
 export default async function ScorerLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser()
   if (!user) redirect("/login?next=/scorer")
-  if (user.role === "none") {
+  const canScore = user.roles.includes("admin") || user.roles.includes("scorer")
+  if (!canScore) {
     return (
       <Container className="max-w-md">
         <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 text-center">
