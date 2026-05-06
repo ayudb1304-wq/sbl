@@ -6,6 +6,7 @@ import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
 import { ScoreEntry } from "@/components/scorer/ScoreEntry"
 import { feederLabel, getMatchById } from "@/lib/queries"
 import { dateIST, stageLabel, timeIST } from "@/lib/format"
+import { getCurrentUser } from "@/lib/auth"
 import type { FeederSource } from "@/lib/supabase/types"
 
 export const dynamic = "force-dynamic"
@@ -14,6 +15,7 @@ export default async function ScorerMatchPage({ params }: { params: Promise<{ id
   const { id } = await params
   const m = await getMatchById(id)
   if (!m) return notFound()
+  const user = await getCurrentUser()
 
   const teamAName = m.team_a?.name ?? feederLabel(m.team_a_source as FeederSource | null)
   const teamBName = m.team_b?.name ?? feederLabel(m.team_b_source as FeederSource | null)
@@ -35,7 +37,12 @@ export default async function ScorerMatchPage({ params }: { params: Promise<{ id
       <LiveScoreSubscriber matchId={id} />
       <div className="flex items-center justify-between">
         <Link href="/scorer" className="text-sm text-[var(--muted)] hover:underline">← All matches</Link>
-        <Link href={`/matches/${id}`} className="text-sm text-[var(--muted)] hover:underline">Public view ↗</Link>
+        <div className="flex gap-3 text-sm">
+          {user?.role === "admin" && (
+            <Link href={`/admin/match/${id}`} className="text-[var(--primary)] hover:underline">Admin view</Link>
+          )}
+          <Link href={`/matches/${id}`} className="text-[var(--muted)] hover:underline">Public view ↗</Link>
+        </div>
       </div>
 
       <header className="space-y-1">

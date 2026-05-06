@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireRole, UnauthorizedError } from "@/lib/auth"
+import { runResolver } from "./admin"
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -55,7 +56,9 @@ export async function updateGameScore(args: {
       .select("status, locked")
       .eq("id", game.match_id)
       .maybeSingle<{ status: string; locked: boolean }>()
-    if (match?.locked) return { ok: false, error: "Match is locked. Ask an admin to unlock." }
+    if (match?.locked && user.role !== "admin") {
+      return { ok: false, error: "Match is locked. Ask an admin to unlock." }
+    }
 
     const now = new Date().toISOString()
     const { error: uErr } = await admin
@@ -146,11 +149,11 @@ export async function setMatchWinner(args: {
 
     const { data: match } = await admin
       .from("matches")
-      .select("team_a_id, team_b_id, locked, status")
+      .select("season_id, team_a_id, team_b_id, locked, status")
       .eq("id", args.matchId)
-      .maybeSingle<{ team_a_id: string | null; team_b_id: string | null; locked: boolean; status: string }>()
+      .maybeSingle<{ season_id: string; team_a_id: string | null; team_b_id: string | null; locked: boolean; status: string }>()
     if (!match) return { ok: false, error: "Match not found." }
-    if (match.locked) return { ok: false, error: "Match is locked." }
+    if (match.locked && user.role !== "admin") return { ok: false, error: "Match is locked." }
     if (args.winnerTeamId !== match.team_a_id && args.winnerTeamId !== match.team_b_id) {
       return { ok: false, error: "Winner must be one of the two teams." }
     }
@@ -174,6 +177,10 @@ export async function setMatchWinner(args: {
       notes: args.walkoverReason ?? null,
     })
 
+    // Auto-advance: if this match's winner feeds into a downstream KO match,
+    // populate that match's team slot now so the next scorer can pick it up.
+    await runResolver(match.season_id)
+
     revalidateMatch(args.matchId)
     return { ok: true }
   } catch (e) { return fail(e) }
@@ -193,7 +200,7 @@ export async function resetMatch(matchId: string): Promise<ActionResult> {
       .select("locked")
       .eq("id", matchId)
       .maybeSingle<{ locked: boolean }>()
-    if (match?.locked) return { ok: false, error: "Match is locked." }
+    if (match?.locked && user.role !== "admin") return { ok: false, error: "Match is locked." }
 
     await admin
       .from("games")

@@ -128,6 +128,9 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          qualifier_1_team_id: string | null
+          qualifier_2_team_id: string | null
+          qualifiers_locked: boolean
           sort_order: number
         }
         Insert: {
@@ -136,6 +139,9 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          qualifier_1_team_id?: string | null
+          qualifier_2_team_id?: string | null
+          qualifiers_locked?: boolean
           sort_order?: number
         }
         Update: {
@@ -144,6 +150,9 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          qualifier_1_team_id?: string | null
+          qualifier_2_team_id?: string | null
+          qualifiers_locked?: boolean
           sort_order?: number
         }
         Relationships: [

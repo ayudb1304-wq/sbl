@@ -19,6 +19,8 @@ type Props = {
   format: "single" | "bo3"
   games: GameRow[]
   winnerTeamId: string | null
+  /** Admin override — if true, inputs stay editable even after the match is completed/walkover. */
+  forceEdit?: boolean
 }
 
 export function ScoreEntry(props: Props) {
@@ -32,7 +34,9 @@ export function ScoreEntry(props: Props) {
   )
 
   const visibleGames = props.format === "single" ? games.slice(0, 1) : games
-  const matchOver = props.matchStatus === "completed" || props.matchStatus === "walkover"
+  const matchOver =
+    !props.forceEdit &&
+    (props.matchStatus === "completed" || props.matchStatus === "walkover")
 
   function action(fn: () => Promise<{ ok: true } | { ok: false; error: string }>) {
     setError(null)
