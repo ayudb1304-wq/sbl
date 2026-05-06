@@ -15,11 +15,11 @@ export function BracketView({ matches, hasQF }: { matches: EnrichedMatch[]; hasQ
     : [{ title: "Semi-finals", items: sf }, { title: "Final", items: fn }]
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:flex lg:items-stretch lg:gap-8 lg:overflow-x-auto">
+    <div className={`grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 ${hasQF ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
       {columns.map(col => (
-        <div key={col.title} className="lg:min-w-[260px] lg:flex-1 space-y-3">
+        <div key={col.title} className="space-y-3">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted)]">{col.title}</h3>
-          <div className="flex flex-col justify-around gap-3 lg:h-full">
+          <div className="flex flex-col justify-around gap-3">
             {col.items.map(m => <BracketMatch key={m.id} m={m} />)}
           </div>
         </div>
