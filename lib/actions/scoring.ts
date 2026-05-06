@@ -59,6 +59,9 @@ export async function updateGameScore(args: {
     if (match?.locked && !user.roles.includes("admin")) {
       return { ok: false, error: "Match is locked. Ask an admin to unlock." }
     }
+    if (match?.status === "scheduled" && !user.roles.includes("admin")) {
+      return { ok: false, error: "Tap Start match before entering scores." }
+    }
 
     const now = new Date().toISOString()
     const { error: uErr } = await admin
@@ -66,16 +69,13 @@ export async function updateGameScore(args: {
       .update({
         team_a_score: args.teamAScore,
         team_b_score: args.teamBScore,
-        status: game.status === "completed" ? "completed" : "in_progress",
-        started_at: game.started_at ?? now,
+        // Don't auto-flip game status to in_progress — that happens when the
+        // scorer clicks Start Match. Just preserve current game status.
+        started_at: game.started_at ?? (game.status === "in_progress" ? now : null),
         updated_by: user.userId,
       })
       .eq("id", args.gameId)
     if (uErr) throw uErr
-
-    if (match && match.status === "scheduled") {
-      await admin.from("matches").update({ status: "in_progress" }).eq("id", game.match_id)
-    }
 
     await admin.from("score_events").insert({
       match_id: game.match_id,
@@ -90,6 +90,59 @@ export async function updateGameScore(args: {
     })
 
     revalidateMatch(game.match_id)
+    return { ok: true }
+  } catch (e) { return fail(e) }
+}
+
+/**
+ * Flip a scheduled match to in_progress and stamp game 1's started_at.
+ * Scorers MUST call this before entering scores (admins can bypass).
+ */
+export async function startMatch(matchId: string): Promise<ActionResult> {
+  try {
+    const user = await requireRole(["admin", "scorer"])
+    const admin = createAdminClient()
+    const { data: match } = await admin
+      .from("matches")
+      .select("status, locked, team_a_id, team_b_id")
+      .eq("id", matchId)
+      .maybeSingle<{ status: string; locked: boolean; team_a_id: string | null; team_b_id: string | null }>()
+    if (!match) return { ok: false, error: "Match not found." }
+    if (match.locked && !user.roles.includes("admin")) {
+      return { ok: false, error: "Match is locked. Ask an admin to unlock." }
+    }
+    if (!match.team_a_id || !match.team_b_id) {
+      return { ok: false, error: "Both teams must be set before starting." }
+    }
+    if (match.status !== "scheduled") {
+      return { ok: false, error: `Match is already ${match.status}.` }
+    }
+
+    const now = new Date().toISOString()
+    const { error: mErr } = await admin
+      .from("matches")
+      .update({ status: "in_progress" })
+      .eq("id", matchId)
+    if (mErr) throw mErr
+
+    // Game 1 goes in_progress; later games stay pending until manually started or
+    // (in our flow) marked in_progress as scorer enters scores after end-of-game.
+    const { error: gErr } = await admin
+      .from("games")
+      .update({ status: "in_progress", started_at: now })
+      .eq("match_id", matchId)
+      .eq("game_number", 1)
+    if (gErr) throw gErr
+
+    await admin.from("score_events").insert({
+      match_id: matchId,
+      action: "score_update",
+      actor_id: user.userId,
+      actor_role: user.role,
+      notes: "match started",
+    })
+
+    revalidateMatch(matchId)
     return { ok: true }
   } catch (e) { return fail(e) }
 }

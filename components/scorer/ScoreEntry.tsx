@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useOptimistic, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { completeGame, resetMatch, setMatchWinner, updateGameScore } from "@/lib/actions/scoring"
+import { completeGame, resetMatch, setMatchWinner, startMatch, updateGameScore } from "@/lib/actions/scoring"
 
 type GameRow = {
   id: string
@@ -37,6 +37,7 @@ export function ScoreEntry(props: Props) {
   const matchOver =
     !props.forceEdit &&
     (props.matchStatus === "completed" || props.matchStatus === "walkover")
+  const notStarted = props.matchStatus === "scheduled"
 
   function action(fn: () => Promise<{ ok: true } | { ok: false; error: string }>) {
     setError(null)
@@ -70,13 +71,34 @@ export function ScoreEntry(props: Props) {
         </div>
       )}
 
+      {notStarted && (
+        <div className="rounded-xl border border-[var(--primary)]/40 bg-[var(--primary-soft)] p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--primary)]">Match not started</h3>
+              <p className="mt-1 text-sm text-[var(--text)]">
+                Tap <strong>Start match</strong> when both pairs are on court and ready. The match goes live and spectators see scores update in real time.
+              </p>
+            </div>
+            <button
+              onClick={() => action(() => startMatch(props.matchId))}
+              disabled={pending}
+              style={{ backgroundColor: "var(--primary)" }}
+              className="rounded-md px-5 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+            >
+              {pending ? "Starting..." : "▶ Start match"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {visibleGames.map(g => (
         <GamePanel
           key={g.id}
           game={g}
           teamA={props.teamA}
           teamB={props.teamB}
-          locked={matchOver}
+          locked={matchOver || (notStarted && !props.forceEdit)}
           pending={pending}
           onAdjust={(dA, dB) => saveScore(g, dA, dB)}
           onCommit={(side, value) => commitExact(g, side, value)}
@@ -90,18 +112,20 @@ export function ScoreEntry(props: Props) {
           <div className="flex flex-wrap gap-2">
             {props.teamA.id && (
               <button
-                disabled={pending}
+                disabled={pending || (notStarted && !props.forceEdit)}
                 onClick={() => action(() => setMatchWinner({ matchId: props.matchId, winnerTeamId: props.teamA.id! }))}
                 className="rounded-md bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                title={notStarted ? "Start the match first" : undefined}
               >
                 Winner: {props.teamA.name}
               </button>
             )}
             {props.teamB.id && (
               <button
-                disabled={pending}
+                disabled={pending || (notStarted && !props.forceEdit)}
                 onClick={() => action(() => setMatchWinner({ matchId: props.matchId, winnerTeamId: props.teamB.id! }))}
                 className="rounded-md bg-[var(--primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                title={notStarted ? "Start the match first" : undefined}
               >
                 Winner: {props.teamB.name}
               </button>
