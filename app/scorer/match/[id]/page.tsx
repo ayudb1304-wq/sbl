@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Container } from "@/components/Container"
+import { Breadcrumbs } from "@/components/Breadcrumbs"
 import { StatusPill } from "@/components/StatusPill"
 import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
 import { ScoreEntry } from "@/components/scorer/ScoreEntry"
@@ -35,20 +36,22 @@ export default async function ScorerMatchPage({ params }: { params: Promise<{ id
   return (
     <Container className="space-y-6">
       <LiveScoreSubscriber matchId={id} />
-      <div className="flex items-center justify-between">
-        <Link href="/scorer" className="text-sm text-[var(--muted)] hover:underline">← All matches</Link>
-        <div className="flex gap-3 text-sm">
+      <div className="flex items-center justify-between gap-2">
+        <Breadcrumbs items={[
+          { label: "Scorer", href: "/scorer" },
+          { label: stageLabel(m.stage, m.round_label) },
+        ]} />
+        <div className="flex gap-3 text-xs">
           {user?.role === "admin" && (
             <Link href={`/admin/match/${id}`} className="text-[var(--primary)] hover:underline">Admin view</Link>
           )}
-          <Link href={`/matches/${id}`} className="text-[var(--muted)] hover:underline">Public view ↗</Link>
+          <Link href={`/matches/${id}`} className="text-[var(--muted)] hover:underline">Public ↗</Link>
         </div>
       </div>
 
       <header className="space-y-1">
         <p className="text-sm text-[var(--muted)]">
-          {m.category.name} · {stageLabel(m.stage, m.round_label)}
-          {m.group && <> · Group {m.group.code}</>}
+          {m.category.name}{m.group && <> · Group {m.group.code}</>}
         </p>
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">{teamAName} <span className="text-[var(--muted)]">vs</span> {teamBName}</h1>

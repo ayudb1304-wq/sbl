@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Container } from "@/components/Container"
+import { Breadcrumbs } from "@/components/Breadcrumbs"
 import { MatchCard } from "@/components/MatchCard"
 import { StandingsTable } from "@/components/StandingsTable"
 import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
@@ -27,8 +28,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ code:
   return (
     <Container className="space-y-8">
       <LiveScoreSubscriber />
-      <header>
-        <p className="text-sm text-[var(--muted)]">{season.name}</p>
+      <header className="space-y-2">
+        <Breadcrumbs items={[
+          { label: "Home", href: "/" },
+          { label: categoryShortName(category.code) },
+        ]} />
         <h1 className="text-2xl font-semibold tracking-tight">{categoryShortName(category.code)}</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
           {groups.length} groups · {catMatches.length} matches scheduled ·{" "}

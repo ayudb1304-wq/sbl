@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Container } from "@/components/Container"
+import { Breadcrumbs } from "@/components/Breadcrumbs"
 import { StatusPill } from "@/components/StatusPill"
 import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
 import { feederLabel, getMatchById } from "@/lib/queries"
@@ -23,12 +24,12 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   return (
     <Container className="space-y-6">
       <LiveScoreSubscriber matchId={id} />
-      <header className="space-y-1">
-        <p className="text-sm text-[var(--muted)]">
-          <Link href={`/categories/${m.category.code}`} className="hover:underline">{m.category.name}</Link>
-          {" · "}{stageLabel(m.stage, m.round_label)}
-          {m.group && <> · <Link href={`/categories/${m.category.code}`} className="hover:underline">Group {m.group.code}</Link></>}
-        </p>
+      <header className="space-y-2">
+        <Breadcrumbs items={[
+          { label: "Home", href: "/" },
+          { label: m.category.name, href: `/categories/${m.category.code}` },
+          { label: stageLabel(m.stage, m.round_label) },
+        ]} />
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">Match</h1>
           <StatusPill status={m.status} />

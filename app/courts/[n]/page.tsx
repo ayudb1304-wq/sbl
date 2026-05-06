@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Container } from "@/components/Container"
+import { Breadcrumbs } from "@/components/Breadcrumbs"
 import { MatchCard } from "@/components/MatchCard"
 import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
 import { getActiveSeason, getSeasonMatches } from "@/lib/queries"
@@ -25,8 +26,12 @@ export default async function CourtPage({ params }: { params: Promise<{ n: strin
   return (
     <Container className="space-y-6">
       <LiveScoreSubscriber />
-      <header>
-        <p className="text-sm text-[var(--muted)]">{season.name}</p>
+      <header className="space-y-2">
+        <Breadcrumbs items={[
+          { label: "Home", href: "/" },
+          { label: "Courts" },
+          { label: courtName },
+        ]} />
         <h1 className="text-2xl font-semibold tracking-tight">{courtName}</h1>
         <nav className="mt-3 flex gap-1 text-sm">
           {COURTS.map(c => (

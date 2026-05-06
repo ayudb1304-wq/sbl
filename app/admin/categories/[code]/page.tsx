@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Container } from "@/components/Container"
+import { Breadcrumbs } from "@/components/Breadcrumbs"
 import { StandingsTable } from "@/components/StandingsTable"
 import { GroupQualifierForm } from "@/components/admin/GroupQualifierForm"
 import { ResolveBracketButton } from "@/components/admin/ResolveBracketButton"
@@ -45,8 +46,11 @@ export default async function AdminCategoryPage({ params }: { params: Promise<{ 
 
   return (
     <Container className="space-y-8">
-      <header>
-        <p className="text-sm text-[var(--muted)]">{season.name} · admin</p>
+      <header className="space-y-2">
+        <Breadcrumbs items={[
+          { label: "Admin", href: "/admin" },
+          { label: categoryShortName(codeUpper) },
+        ]} />
         <h1 className="text-2xl font-semibold tracking-tight">{categoryShortName(codeUpper)}</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
           Confirm each group&apos;s top-2 qualifiers, then re-resolve the bracket. Qualifiers default to the live ranking — override only if a toss decides a tie.{" "}

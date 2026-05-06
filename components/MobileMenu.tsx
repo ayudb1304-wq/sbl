@@ -117,7 +117,8 @@ export function MobileMenu({
 
       {/* Drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[85%] max-w-sm flex-col bg-[var(--surface)] shadow-2xl transition-transform duration-200 lg:hidden ${
+        style={{ backgroundColor: "var(--surface)", color: "var(--text)" }}
+        className={`fixed inset-y-0 left-0 z-50 flex w-[85%] max-w-sm flex-col shadow-2xl transition-transform duration-200 lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-hidden={!open}

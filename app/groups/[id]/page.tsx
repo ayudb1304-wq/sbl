@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Container } from "@/components/Container"
+import { Breadcrumbs } from "@/components/Breadcrumbs"
 import { MatchCard } from "@/components/MatchCard"
 import { StandingsTable } from "@/components/StandingsTable"
 import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
@@ -25,12 +26,12 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
   return (
     <Container className="space-y-8">
       <LiveScoreSubscriber />
-      <header>
-        <p className="text-sm text-[var(--muted)]">
-          <Link href={`/categories/${group.category.code}`} className="hover:underline">
-            {group.category.name}
-          </Link>
-        </p>
+      <header className="space-y-2">
+        <Breadcrumbs items={[
+          { label: "Home", href: "/" },
+          { label: group.category.name, href: `/categories/${group.category.code}` },
+          { label: group.name },
+        ]} />
         <h1 className="text-2xl font-semibold tracking-tight">{group.name}</h1>
       </header>
 

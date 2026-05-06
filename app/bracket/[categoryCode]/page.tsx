@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Container } from "@/components/Container"
+import { Breadcrumbs } from "@/components/Breadcrumbs"
 import { BracketView } from "@/components/BracketView"
 import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
 import { getActiveSeason, getCategoryByCode, getSeasonMatches } from "@/lib/queries"
@@ -26,8 +27,12 @@ export default async function BracketPage({ params }: { params: Promise<{ catego
   return (
     <Container className="space-y-6">
       <LiveScoreSubscriber />
-      <header>
-        <p className="text-sm text-[var(--muted)]">{season.name}</p>
+      <header className="space-y-2">
+        <Breadcrumbs items={[
+          { label: "Home", href: "/" },
+          { label: categoryShortName(code), href: `/categories/${code}` },
+          { label: "Bracket" },
+        ]} />
         <h1 className="text-2xl font-semibold tracking-tight">{categoryShortName(code)} — Knockouts</h1>
         <nav className="mt-3 flex gap-1 text-sm">
           {CATS.map(c => (
