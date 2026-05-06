@@ -52,10 +52,8 @@ export function MobileMenu({
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
-  // Close on route change
   useEffect(() => { setOpen(false) }, [pathname])
 
-  // Lock body scroll while drawer is open
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -63,7 +61,6 @@ export function MobileMenu({
     return () => { document.body.style.overflow = prev }
   }, [open])
 
-  // Close on ESC
   useEffect(() => {
     if (!open) return
     function onKey(e: KeyboardEvent) { if (e.key === "Escape") setOpen(false) }
@@ -106,24 +103,48 @@ export function MobileMenu({
         </svg>
       </button>
 
-      {/* Backdrop */}
+      {/* Backdrop — fully opaque solid color so page content can't bleed through. */}
       <div
         onClick={() => setOpen(false)}
-        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity lg:hidden ${
-          open ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
+        style={{
+          position: "fixed",
+          top: 0, right: 0, bottom: 0, left: 0,
+          zIndex: 60,
+          backgroundColor: "rgba(0, 0, 0, 0.55)",
+          backdropFilter: "blur(2px)",
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 200ms ease",
+        }}
+        className="lg:hidden"
         aria-hidden
       />
 
-      {/* Drawer */}
+      {/* Drawer — inline styles for positioning + dimensions + bg so it can't
+          accidentally render with bleed-through, regardless of browser/CSS context. */}
       <aside
-        style={{ backgroundColor: "var(--surface)", color: "var(--text)" }}
-        className={`fixed inset-y-0 left-0 z-50 flex w-[85%] max-w-sm flex-col shadow-2xl transition-transform duration-200 lg:hidden ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          height: "100dvh",
+          width: "min(86vw, 340px)",
+          zIndex: 70,
+          backgroundColor: "var(--surface)",
+          color: "var(--text)",
+          boxShadow: "0 20px 50px rgba(0, 0, 0, 0.35)",
+          transform: open ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 220ms cubic-bezier(0.32, 0.72, 0, 1)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        className="lg:hidden"
         aria-hidden={!open}
       >
-        <header className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
+        <header
+          style={{ backgroundColor: "var(--surface)", borderBottom: "1px solid var(--border)" }}
+          className="flex items-center justify-between px-4 py-3"
+        >
           <Link href="/" className="flex items-baseline gap-2">
             <span className="text-lg font-semibold tracking-tight">{brand}</span>
             {seasonName && <span className="text-xs text-[var(--muted)]">{seasonName}</span>}
@@ -139,7 +160,10 @@ export function MobileMenu({
           </button>
         </header>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <nav
+          style={{ backgroundColor: "var(--surface)" }}
+          className="flex-1 min-h-0 overflow-y-auto px-3 py-4"
+        >
           {sections.map(s => (
             <div key={s.label} className="mb-5">
               <div className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">
@@ -152,10 +176,13 @@ export function MobileMenu({
                     <li key={l.href}>
                       <Link
                         href={l.href}
-                        className={`block rounded-md px-3 py-2 text-sm ${
+                        style={
                           active
-                            ? "bg-[var(--primary-soft)] font-medium text-[var(--primary)]"
-                            : "hover:bg-[var(--surface-alt)]"
+                            ? { backgroundColor: "var(--primary-soft)", color: "var(--primary)" }
+                            : undefined
+                        }
+                        className={`block rounded-md px-3 py-2 text-sm ${
+                          active ? "font-medium" : "hover:bg-[var(--surface-alt)]"
                         }`}
                       >
                         <div>{l.label}</div>
@@ -169,7 +196,10 @@ export function MobileMenu({
           ))}
         </nav>
 
-        <footer className="border-t border-[var(--border)] px-4 py-3 text-sm">
+        <footer
+          style={{ backgroundColor: "var(--surface)", borderTop: "1px solid var(--border)" }}
+          className="px-4 py-3 text-sm"
+        >
           {user ? (
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
@@ -185,7 +215,8 @@ export function MobileMenu({
           ) : (
             <Link
               href="/login"
-              className="block rounded-md bg-[var(--primary)] px-3 py-2 text-center text-sm font-medium text-white hover:bg-[var(--primary-hover)]"
+              style={{ backgroundColor: "var(--primary)" }}
+              className="block rounded-md px-3 py-2 text-center text-sm font-medium text-white hover:opacity-90"
             >
               Sign in
             </Link>
