@@ -2,13 +2,13 @@
  * Demo simulator — brings SBL 2026 to "early-afternoon" tournament state for
  * UI/UX testing. Idempotent: safe to re-run after `npm run seed:2026 -- --force`.
  *
- * What it produces:
- *   - All MI group matches completed (smallest groups → fastest done)
- *   - All Women's group matches completed
- *   - All MB group matches completed except for one in_progress + one walkover
- *   - Group qualifiers confirmed for every group
- *   - Bracket resolved (QF teams populated)
- *   - 2 of 4 MB QFs and 2 of 4 MI QFs completed
+ * What it produces (against current 87 group matches / 17 KO):
+ *   - All MI group matches completed
+ *   - All W group matches completed except one W-B match in_progress
+ *     (showcases the recently-added Polka Dots group)
+ *   - All MB group matches completed except one in_progress + one walkover
+ *   - Group qualifiers confirmed for every group → bracket resolved (QFs populated)
+ *   - 2 of 4 MB QFs + 2 of 4 MI QFs completed
  *   - 1 MB QF in_progress with a partial first-game score
  *   - 1 W SF completed → triggers W Final auto-fill
  *   - Season status flipped to 'live'
@@ -295,11 +295,17 @@ async function main() {
   // Step 1: complete most group matches
   console.log("Step 1: simulating group stage")
   const groupMatches = data.matches.filter(m => m.stage === "group" && m.team_a_id && m.team_b_id)
-  // Pick a few special MB matches: one in_progress + one walkover
+  // Special-case picks: one MB in_progress, one MB walkover, one W-B in_progress
+  // (so the new Polka Dots group has a live match on the dashboard).
   const mbCat = data.cats.find(c => c.code === "MB")!
+  const wCat  = data.cats.find(c => c.code === "W")!
   const mbGroupMatches = groupMatches.filter(m => m.category_id === mbCat.id)
-  const inProgressMatch = mbGroupMatches[Math.floor(mbGroupMatches.length / 2)]
-  const walkoverMatch = mbGroupMatches[mbGroupMatches.length - 2]
+  const wbGroup = data.groups.find(g => g.category_id === wCat.id && g.code === "B")
+  const wbGroupMatches = wbGroup ? groupMatches.filter(m => m.group_id === wbGroup.id) : []
+
+  const mbInProgress = mbGroupMatches[Math.floor(mbGroupMatches.length / 2)]
+  const mbWalkover   = mbGroupMatches[mbGroupMatches.length - 2]
+  const wbInProgress = wbGroupMatches[Math.floor(wbGroupMatches.length / 2)]
 
   let completedGroup = 0, inProgressGroup = 0, walkovers = 0
   for (const m of groupMatches) {
@@ -310,10 +316,10 @@ async function main() {
     const games = gamesByMatch.get(m.id) ?? []
     if (games.length === 0) continue
 
-    if (m.id === inProgressMatch?.id) {
+    if (m.id === mbInProgress?.id || m.id === wbInProgress?.id) {
       await setMatchInProgress({ matchId: m.id, gameId: games[0].id, catCode: cat.code })
       inProgressGroup++
-    } else if (m.id === walkoverMatch?.id) {
+    } else if (m.id === mbWalkover?.id) {
       await declareWalkover({ matchId: m.id, teamAId: teamA.id, teamBId: teamB.id })
       walkovers++
     } else {
