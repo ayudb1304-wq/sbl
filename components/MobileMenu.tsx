@@ -29,6 +29,13 @@ const PUBLIC_SECTIONS: Section[] = [
     ],
   },
   {
+    label: "Play along",
+    links: [
+      { href: "/predictions",            label: "Bracket challenge", sublabel: "Pick KO winners, climb the leaderboard" },
+      { href: "/predictions/leaderboard", label: "Leaderboard" },
+    ],
+  },
+  {
     label: "Courts",
     links: [
       { href: "/courts/1", label: "Court 1" },

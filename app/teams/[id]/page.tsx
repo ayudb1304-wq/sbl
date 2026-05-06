@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Container } from "@/components/Container"
 import { Breadcrumbs } from "@/components/Breadcrumbs"
+import { FollowButton } from "@/components/FollowButton"
 import { MatchCard } from "@/components/MatchCard"
 import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
 import { getMatchesForTeam, getTeamById } from "@/lib/queries"
@@ -26,9 +27,10 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
           ...(team.group ? [{ label: `Group ${team.group.code}` }] : []),
           { label: team.name },
         ]} />
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">{team.name}</h1>
           {team.seed && <span className="rounded bg-[var(--bg)] px-2 py-0.5 text-xs">Seed #{team.seed}</span>}
+          <div className="ml-auto"><FollowButton teamId={team.id} teamName={team.name} /></div>
         </div>
         {team.company && <p className="text-sm text-[var(--muted)]">{team.company}</p>}
       </header>

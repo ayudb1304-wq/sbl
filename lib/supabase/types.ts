@@ -466,6 +466,29 @@ export type Database = {
           },
         ]
       }
+      participant_profiles: {
+        Row: { device_id: string; display_name: string; created_at: string; updated_at: string }
+        Insert: { device_id: string; display_name: string; created_at?: string; updated_at?: string }
+        Update: { device_id?: string; display_name?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      cheers: {
+        Row: { id: string; match_id: string; device_id: string; cheer_type: Database["public"]["Enums"]["cheer_type"]; created_at: string }
+        Insert: { id?: string; match_id: string; device_id: string; cheer_type: Database["public"]["Enums"]["cheer_type"]; created_at?: string }
+        Update: { id?: string; match_id?: string; device_id?: string; cheer_type?: Database["public"]["Enums"]["cheer_type"]; created_at?: string }
+        Relationships: [
+          { foreignKeyName: "cheers_match_id_fkey"; columns: ["match_id"]; isOneToOne: false; referencedRelation: "matches"; referencedColumns: ["id"] }
+        ]
+      }
+      predictions: {
+        Row: { device_id: string; match_id: string; predicted_team_id: string; created_at: string; updated_at: string }
+        Insert: { device_id: string; match_id: string; predicted_team_id: string; created_at?: string; updated_at?: string }
+        Update: { device_id?: string; match_id?: string; predicted_team_id?: string; created_at?: string; updated_at?: string }
+        Relationships: [
+          { foreignKeyName: "predictions_match_id_fkey"; columns: ["match_id"]; isOneToOne: false; referencedRelation: "matches"; referencedColumns: ["id"] },
+          { foreignKeyName: "predictions_predicted_team_id_fkey"; columns: ["predicted_team_id"]; isOneToOne: false; referencedRelation: "teams"; referencedColumns: ["id"] }
+        ]
+      }
       teams: {
         Row: {
           category_id: string
@@ -569,6 +592,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      cheer_type: "clap" | "fire"
       game_status: "pending" | "in_progress" | "completed"
       match_stage: "group" | "qf" | "sf" | "final"
       match_status:

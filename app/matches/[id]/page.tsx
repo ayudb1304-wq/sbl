@@ -4,8 +4,10 @@ import { Container } from "@/components/Container"
 import { Breadcrumbs } from "@/components/Breadcrumbs"
 import { StatusPill } from "@/components/StatusPill"
 import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
+import { Cheers } from "@/components/Cheers"
 import { feederLabel, getMatchById } from "@/lib/queries"
 import { dateIST, stageLabel, timeIST } from "@/lib/format"
+import { createAdminClient } from "@/lib/supabase/admin"
 import type { FeederSource } from "@/lib/supabase/types"
 
 export const dynamic = "force-dynamic"
@@ -20,6 +22,18 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const games = [...m.games].sort((a, b) => a.game_number - b.game_number)
   const isWinnerA = m.winner_team_id && m.winner_team_id === m.team_a_id
   const isWinnerB = m.winner_team_id && m.winner_team_id === m.team_b_id
+
+  // Cheer counts (live updates handled by the client component)
+  const showCheers = m.status === "in_progress" || m.status === "completed" || m.status === "walkover"
+  let cheerCounts = { clap: 0, fire: 0 }
+  if (showCheers) {
+    const adminCli = createAdminClient()
+    const [clapRes, fireRes] = await Promise.all([
+      adminCli.from("cheers").select("id", { count: "exact", head: true }).eq("match_id", id).eq("cheer_type", "clap"),
+      adminCli.from("cheers").select("id", { count: "exact", head: true }).eq("match_id", id).eq("cheer_type", "fire"),
+    ])
+    cheerCounts = { clap: clapRes.count ?? 0, fire: fireRes.count ?? 0 }
+  }
 
   return (
     <Container className="space-y-6">
@@ -52,6 +66,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           </p>
         )}
       </section>
+
+      {showCheers && <Cheers matchId={id} initialCounts={cheerCounts} />}
 
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">Games</h2>

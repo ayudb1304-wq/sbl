@@ -2,8 +2,10 @@ import Link from "next/link"
 import { Container } from "@/components/Container"
 import { MatchCard } from "@/components/MatchCard"
 import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
+import { YourTeamsRail } from "@/components/YourTeamsRail"
 import { getActiveSeason, getCategories, getSeasonMatches, getStandingsForGroup } from "@/lib/queries"
 import { rankGroup } from "@/lib/standings"
+import { createAdminClient } from "@/lib/supabase/admin"
 import type { EnrichedMatch } from "@/lib/queries"
 
 export const dynamic = "force-dynamic" // tournament data is live; never cache
@@ -35,6 +37,11 @@ export default async function Home() {
   const totalMatches = matches.length
   const completed = matches.filter(m => m.status === "completed" || m.status === "walkover").length
 
+  // Lightweight team index for the Your-Teams rail (client-side filter by localStorage IDs).
+  const adminCli = createAdminClient()
+  const { data: teamRows } = await adminCli.from("teams").select("id, name").eq("season_id", season.id)
+  const teamsById = Object.fromEntries((teamRows ?? []).map(t => [t.id, { id: t.id, name: t.name }]))
+
   return (
     <Container className="space-y-10">
       <LiveScoreSubscriber />
@@ -58,6 +65,8 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <YourTeamsRail matches={matches} teamsById={teamsById} />
 
       <Section
         title={live.length > 0 ? `Live now (${live.length})` : "No matches in progress"}
