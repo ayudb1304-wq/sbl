@@ -6,6 +6,7 @@ import { YourTeamsRail } from "@/components/YourTeamsRail"
 import { getActiveSeason, getCategories, getSeasonMatches, getStandingsForGroup } from "@/lib/queries"
 import { rankGroup } from "@/lib/standings"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { branding } from "@/lib/branding"
 import type { EnrichedMatch } from "@/lib/queries"
 
 export const dynamic = "force-dynamic" // tournament data is live; never cache
@@ -47,14 +48,26 @@ export default async function Home() {
       <LiveScoreSubscriber />
 
       <section className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--primary-soft)] via-[var(--surface)] to-[var(--surface)] p-6 sm:p-10">
-        <div className="relative space-y-3">
+        <div className="relative space-y-5">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)]/80 px-3 py-1 text-xs font-medium text-[var(--muted-strong)]">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
             {season.name} · {season.status}
           </span>
-          <h1 className="display text-3xl sm:text-5xl text-[var(--text-strong)]">
-            Sysfore Badminton League
-          </h1>
+          {branding.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={branding.logoUrl}
+              alt={branding.appTagline}
+              className="h-16 w-auto sm:h-24"
+            />
+          ) : (
+            <h1 className="display text-3xl sm:text-5xl text-[var(--text-strong)]">
+              {branding.appTagline}
+            </h1>
+          )}
+          <p className="display text-2xl sm:text-4xl tracking-tight text-[var(--primary)]">
+            {branding.heroTagline}
+          </p>
           <p className="max-w-2xl text-sm sm:text-base text-[var(--muted-strong)]">
             Doubles · 6 courts · {categories.length} categories · live scores updated as the tournament unfolds.
           </p>
