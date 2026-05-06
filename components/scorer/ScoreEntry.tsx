@@ -1,5 +1,5 @@
 "use client"
-import { useOptimistic, useState, useTransition } from "react"
+import { useEffect, useOptimistic, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { completeGame, resetMatch, setMatchWinner, updateGameScore } from "@/lib/actions/scoring"
 
@@ -49,8 +49,10 @@ export function ScoreEntry(props: Props) {
     action(() => updateGameScore({ gameId: g.id, teamAScore: next.team_a_score, teamBScore: next.team_b_score }))
   }
 
-  function setExact(g: GameRow, side: "a" | "b", value: number) {
+  function commitExact(g: GameRow, side: "a" | "b", value: number) {
     const safe = Math.max(0, Math.min(99, value))
+    const current = side === "a" ? g.team_a_score : g.team_b_score
+    if (safe === current) return // no-op — don't touch DB or audit log
     const next = { ...g, status: "in_progress" as const, [side === "a" ? "team_a_score" : "team_b_score"]: safe } as GameRow
     setGamesOptimistic(next)
     action(() => updateGameScore({ gameId: g.id, teamAScore: next.team_a_score, teamBScore: next.team_b_score }))
@@ -73,7 +75,7 @@ export function ScoreEntry(props: Props) {
           locked={matchOver}
           pending={pending}
           onAdjust={(dA, dB) => saveScore(g, dA, dB)}
-          onSetExact={(side, value) => setExact(g, side, value)}
+          onCommit={(side, value) => commitExact(g, side, value)}
           onComplete={() => action(() => completeGame(g.id))}
         />
       ))}
@@ -128,7 +130,7 @@ export function ScoreEntry(props: Props) {
 }
 
 function GamePanel({
-  game, teamA, teamB, locked, pending, onAdjust, onSetExact, onComplete,
+  game, teamA, teamB, locked, pending, onAdjust, onCommit, onComplete,
 }: {
   game: GameRow
   teamA: { name: string }
@@ -136,7 +138,7 @@ function GamePanel({
   locked: boolean
   pending: boolean
   onAdjust: (dA: number, dB: number) => void
-  onSetExact: (side: "a" | "b", value: number) => void
+  onCommit: (side: "a" | "b", value: number) => void
   onComplete: () => void
 }) {
   const isDone = game.status === "completed"
@@ -149,10 +151,10 @@ function GamePanel({
       <div className="mt-3 grid grid-cols-2 gap-3">
         <ScoreColumn name={teamA.name} value={game.team_a_score} disabled={locked || pending}
           onMinus={() => onAdjust(-1, 0)} onPlus={() => onAdjust(1, 0)}
-          onSet={(v) => onSetExact("a", v)} />
+          onCommit={(v) => onCommit("a", v)} />
         <ScoreColumn name={teamB.name} value={game.team_b_score} disabled={locked || pending}
           onMinus={() => onAdjust(0, -1)} onPlus={() => onAdjust(0, 1)}
-          onSet={(v) => onSetExact("b", v)} />
+          onCommit={(v) => onCommit("b", v)} />
       </div>
       {!isDone && !locked && (
         <button
@@ -167,16 +169,41 @@ function GamePanel({
   )
 }
 
+/**
+ * Score input. The value the user types is held in local state until they
+ * blur the field (or press Enter) — only then do we commit to the server.
+ * Escape reverts to the canonical value. +/- buttons still commit instantly.
+ */
 function ScoreColumn({
-  name, value, disabled, onMinus, onPlus, onSet,
+  name, value, disabled, onMinus, onPlus, onCommit,
 }: {
   name: string
   value: number
   disabled: boolean
   onMinus: () => void
   onPlus: () => void
-  onSet: (v: number) => void
+  onCommit: (v: number) => void
 }) {
+  const [draft, setDraft] = useState(String(value))
+  const [focused, setFocused] = useState(false)
+
+  // Sync draft to canonical value when not actively editing — handles
+  // realtime updates from other scorers/admins, and +/- button commits.
+  useEffect(() => {
+    if (!focused) setDraft(String(value))
+  }, [value, focused])
+
+  function commit() {
+    const parsed = Number(draft)
+    if (Number.isNaN(parsed)) {
+      setDraft(String(value))
+      return
+    }
+    const safe = Math.max(0, Math.min(99, Math.floor(parsed)))
+    setDraft(String(safe))
+    onCommit(safe)
+  }
+
   return (
     <div className="text-center">
       <div className="truncate text-xs text-[var(--muted)]">{name}</div>
@@ -185,13 +212,19 @@ function ScoreColumn({
         <input
           type="number"
           inputMode="numeric"
-          value={value}
+          value={draft}
           disabled={disabled}
           min={0}
           max={99}
-          onChange={(e) => {
-            const v = Number(e.target.value)
-            if (!Number.isNaN(v)) onSet(v)
+          onChange={(e) => setDraft(e.target.value)}
+          onFocus={(e) => { setFocused(true); e.target.select() }}
+          onBlur={() => { setFocused(false); commit() }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur()
+            else if (e.key === "Escape") {
+              setDraft(String(value))
+              ;(e.currentTarget as HTMLInputElement).blur()
+            }
           }}
           className="h-12 w-16 rounded-md border border-[var(--border)] bg-[var(--bg)] text-center text-2xl font-mono tabular-nums disabled:opacity-50"
         />
