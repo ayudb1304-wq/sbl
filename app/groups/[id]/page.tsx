@@ -53,7 +53,7 @@ export default async function GroupPage({ params }: { params: Promise<{ id: stri
                 {t.seed && <span className="text-xs text-[var(--muted)]">#{t.seed}</span>}
               </div>
               <p className="mt-1 text-xs text-[var(--muted)]">
-                {t.team_players.map(tp => tp.player.full_name).join(" & ")}
+                {(t.team_players ?? []).map(tp => tp.player?.full_name).filter(Boolean).join(" & ")}
               </p>
               {t.company && <p className="mt-0.5 text-xs text-[var(--muted)]">{t.company}</p>}
             </Link>

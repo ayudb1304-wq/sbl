@@ -12,16 +12,22 @@ export type CurrentUser = {
  * Reads role from the `profiles` table (auto-created by handle_new_user trigger).
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const sb = await createClient()
-  const { data: { user } } = await sb.auth.getUser()
-  if (!user) return null
-  const { data: profile } = await sb
-    .from("profiles")
-    .select("role, email")
-    .eq("id", user.id)
-    .maybeSingle<{ role: Profile["role"]; email: string }>()
-  if (!profile) return null
-  return { userId: user.id, email: profile.email, role: profile.role }
+  try {
+    const sb = await createClient()
+    const { data: { user } } = await sb.auth.getUser()
+    if (!user) return null
+    const { data: profile } = await sb
+      .from("profiles")
+      .select("role, email")
+      .eq("id", user.id)
+      .maybeSingle<{ role: Profile["role"]; email: string }>()
+    if (!profile) return null
+    return { userId: user.id, email: profile.email, role: profile.role }
+  } catch {
+    // Auth session edge cases (expired, refresh failure, etc.) shouldn't take
+    // down server-rendered pages that call this purely for UI affordances.
+    return null
+  }
 }
 
 export class UnauthorizedError extends Error {
