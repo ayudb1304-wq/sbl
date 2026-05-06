@@ -216,7 +216,7 @@ export async function getGroupById(id: string): Promise<GroupDetail | null> {
     .select(`
       *,
       category:categories ( code, name ),
-      teams ( id, name, seed, company, team_players ( player:players ( id, full_name ) ) )
+      teams!teams_group_id_fkey ( id, name, seed, company, team_players ( player:players ( id, full_name ) ) )
     `)
     .eq("id", id)
     .maybeSingle()

@@ -29,7 +29,7 @@ export default async function AdminCategoryPage({ params }: { params: Promise<{ 
   const admin = createAdminClient()
   const { data: groupsRaw } = await admin
     .from("groups")
-    .select("id, code, name, qualifier_1_team_id, qualifier_2_team_id, qualifiers_locked, sort_order, teams ( id, name, seed )")
+    .select("id, code, name, qualifier_1_team_id, qualifier_2_team_id, qualifiers_locked, sort_order, teams!teams_group_id_fkey ( id, name, seed )")
     .eq("category_id", category.id)
     .order("sort_order")
   const groups = (groupsRaw ?? []) as unknown as {
