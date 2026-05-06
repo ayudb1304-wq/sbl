@@ -20,9 +20,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Nav seasonName={season?.name ?? null} />
-        <main className="flex-1 py-6">{children}</main>
+        <main className="flex-1 py-6 sm:py-10">{children}</main>
         <footer className="border-t border-[var(--border)] py-6 text-center text-xs text-[var(--muted)]">
           {branding.appTagline}
+          {season && <> · <span className="text-[var(--muted-strong)]">{season.name}</span></>}
         </footer>
         <Analytics />
       </body>

@@ -1,41 +1,139 @@
 @import "tailwindcss";
 
+/* ----------------------------------------------------------
+ * SBL theme — warm cream + coral, inspired by Claude's design language.
+ * Logo + final palette will swap in once the user provides them.
+ * ---------------------------------------------------------- */
+
 :root {
-  --bg: #fafafa;
-  --surface: #ffffff;
-  --text: #0a0a0a;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --primary: #0f766e;
-  --accent: #f59e0b;
-  --live: #dc2626;
+  /* Surfaces */
+  --bg: #FAF9F6;            /* warm ivory page background */
+  --surface: #FFFFFF;       /* card / panel surface */
+  --surface-alt: #F4F0E8;   /* zebra rows, elevated areas */
+  --surface-hover: #F8F4EB;
+
+  /* Text */
+  --text: #1F1B16;
+  --text-strong: #0F0D0A;
+  --muted: #76706A;
+  --muted-strong: #4F4A44;
+
+  /* Borders */
+  --border: #E5DFD2;
+  --border-strong: #D6CFBE;
+
+  /* Brand */
+  --primary: #C0623F;       /* Anthropic coral */
+  --primary-hover: #A45131;
+  --primary-soft: #FBEEE5;
+  --accent: #B07E3F;        /* warm tan */
+
+  /* Status */
+  --live: #C84B30;
+  --live-soft: #FBE8E1;
+  --success: #4A7C59;
+  --success-soft: #E6EFE5;
+  --warning: #B5872C;
+  --warning-soft: #FAF1D6;
+
+  /* Effects */
+  --ring: 0 0 0 3px rgba(192, 98, 63, 0.25);
+  --shadow-card: 0 1px 2px rgba(31, 27, 22, 0.04);
+  --shadow-pop: 0 8px 24px rgba(31, 27, 22, 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0a0a0a;
-    --surface: #111111;
-    --text: #f5f5f5;
-    --muted: #9ca3af;
-    --border: #262626;
+    --bg: #1A1814;
+    --surface: #232019;
+    --surface-alt: #2C2922;
+    --surface-hover: #2F2C25;
+
+    --text: #F4F0E8;
+    --text-strong: #FFFCF6;
+    --muted: #9C968A;
+    --muted-strong: #BDB6A8;
+
+    --border: #38332B;
+    --border-strong: #4A443A;
+
+    --primary: #D8825D;        /* lifted coral for dark mode contrast */
+    --primary-hover: #E29270;
+    --primary-soft: #382821;
+
+    --live: #E55C42;
+    --live-soft: #3A211B;
+    --success: #6E9B7C;
+    --success-soft: #1F2D24;
+    --warning: #D8A24A;
+    --warning-soft: #322713;
+
+    --ring: 0 0 0 3px rgba(216, 130, 93, 0.35);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.45);
   }
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
   --color-text: var(--text);
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-primary: var(--primary);
   --color-accent: var(--accent);
   --color-live: var(--live);
+  --color-success: var(--success);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: ui-serif, "Iowan Old Style", "Charter", Georgia, serif;
 }
+
+/* ---------- Base ---------- */
+html { color-scheme: light dark; }
 
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Premium serif heading on the home hero. Other h1s opt in via .display. */
+.display {
+  font-family: var(--font-serif);
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+/* Subtle texture: faint diagonal gradient on body */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1100px 600px at 90% -10%, rgba(192, 98, 63, 0.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(176, 126, 63, 0.05), transparent 60%);
+  z-index: -1;
+}
+
+/* Focus rings — warm coral, not browser blue */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: 6px;
+}
+
+/* Smooth interactions */
+a, button, [role="button"] {
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+/* Selection */
+::selection {
+  background: var(--primary-soft);
+  color: var(--text-strong);
 }

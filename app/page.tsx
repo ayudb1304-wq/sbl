@@ -32,15 +32,31 @@ export default async function Home() {
     .sort((a, b) => (b.scheduled_at ?? "").localeCompare(a.scheduled_at ?? ""))
     .slice(0, 6)
 
+  const totalMatches = matches.length
+  const completed = matches.filter(m => m.status === "completed" || m.status === "walkover").length
+
   return (
-    <Container className="space-y-8">
+    <Container className="space-y-10">
       <LiveScoreSubscriber />
 
-      <section>
-        <h1 className="text-2xl font-semibold tracking-tight">{season.name}</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">
-          Doubles tournament · 6 courts · {categories.length} categories
-        </p>
+      <section className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--primary-soft)] via-[var(--surface)] to-[var(--surface)] p-6 sm:p-10">
+        <div className="relative space-y-3">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)]/80 px-3 py-1 text-xs font-medium text-[var(--muted-strong)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+            {season.name} · {season.status}
+          </span>
+          <h1 className="display text-3xl sm:text-5xl text-[var(--text-strong)]">
+            Sysfore Badminton League
+          </h1>
+          <p className="max-w-2xl text-sm sm:text-base text-[var(--muted-strong)]">
+            Doubles · 6 courts · {categories.length} categories · live scores updated as the tournament unfolds.
+          </p>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 pt-2 text-sm text-[var(--muted)]">
+            <span><span className="font-semibold text-[var(--text)]">{totalMatches}</span> matches</span>
+            <span><span className="font-semibold text-[var(--success)]">{completed}</span> completed</span>
+            <span><span className="font-semibold text-[var(--live)]">{live.length}</span> live</span>
+          </div>
+        </div>
       </section>
 
       <Section

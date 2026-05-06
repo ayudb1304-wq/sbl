@@ -57,13 +57,13 @@ export function statusBadge(status: string): { label: string; tone: "live" | "do
 export function statusCardClasses(status: string): string {
   switch (status) {
     case "in_progress":
-      return "bg-red-50/60 border-red-200 dark:bg-red-950/20 dark:border-red-900/50"
+      return "bg-[var(--live-soft)] border-[var(--live)]/30"
     case "completed":
-      return "bg-emerald-50/60 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900/50"
+      return "bg-[var(--success-soft)] border-[var(--success)]/30"
     case "walkover":
-      return "bg-amber-50/70 border-amber-200 dark:bg-amber-950/25 dark:border-amber-900/50"
+      return "bg-[var(--warning-soft)] border-[var(--warning)]/30"
     case "cancelled":
-      return "bg-zinc-100/60 border-zinc-200 opacity-70 dark:bg-zinc-900/40 dark:border-zinc-800"
+      return "bg-[var(--surface-alt)] border-[var(--border)] opacity-70"
     case "scheduled":
     default:
       return "bg-[var(--surface)] border-[var(--border)]"
