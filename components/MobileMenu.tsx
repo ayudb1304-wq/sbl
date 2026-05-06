@@ -49,9 +49,10 @@ const PUBLIC_SECTIONS: Section[] = [
 ]
 
 export function MobileMenu({
-  brand, seasonName, user, signOutAction,
+  brand, logoUrl, seasonName, user, signOutAction,
 }: {
   brand: string
+  logoUrl: string | null
   seasonName: string | null
   user: MobileMenuUser
   signOutAction: () => Promise<void>
@@ -154,9 +155,16 @@ export function MobileMenu({
           style={{ backgroundColor: "var(--surface)", borderBottom: "1px solid var(--border)" }}
           className="flex items-center justify-between px-4 py-3"
         >
-          <Link href="/" className="flex items-baseline gap-2">
-            <span className="text-lg font-semibold tracking-tight">{brand}</span>
-            {seasonName && <span className="text-xs text-[var(--muted)]">{seasonName}</span>}
+          <Link href="/" className="flex items-center gap-2">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt={brand} className="h-8 w-auto" />
+            ) : (
+              <>
+                <span className="text-lg font-semibold tracking-tight">{brand}</span>
+                {seasonName && <span className="text-xs text-[var(--muted)]">{seasonName}</span>}
+              </>
+            )}
           </Link>
           <button
             onClick={() => setOpen(false)}

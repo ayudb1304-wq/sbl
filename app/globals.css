@@ -22,11 +22,11 @@
   --border: #E5DFD2;
   --border-strong: #D6CFBE;
 
-  /* Brand */
-  --primary: #C0623F;       /* Anthropic coral */
-  --primary-hover: #A45131;
-  --primary-soft: #FBEEE5;
-  --accent: #B07E3F;        /* warm tan */
+  /* Brand — navy from the SBL logo, with warm coral as accent */
+  --primary: #1E2A6E;
+  --primary-hover: #2A3A8C;
+  --primary-soft: #E1E5F2;
+  --accent: #C0623F;
 
   /* Status */
   --live: #C84B30;
@@ -37,7 +37,7 @@
   --warning-soft: #F7E2A0;
 
   /* Effects */
-  --ring: 0 0 0 3px rgba(192, 98, 63, 0.25);
+  --ring: 0 0 0 3px rgba(30, 42, 110, 0.25);
   --shadow-card: 0 1px 2px rgba(31, 27, 22, 0.04);
   --shadow-pop: 0 8px 24px rgba(31, 27, 22, 0.08);
 }
@@ -57,9 +57,9 @@
     --border: #38332B;
     --border-strong: #4A443A;
 
-    --primary: #D8825D;        /* lifted coral for dark mode contrast */
-    --primary-hover: #E29270;
-    --primary-soft: #382821;
+    --primary: #6E80C4;        /* lifted navy for dark-mode contrast */
+    --primary-hover: #8595D2;
+    --primary-soft: #232B4A;
 
     --live: #E55C42;
     --live-soft: #4F2A22;
@@ -68,7 +68,7 @@
     --warning: #D8A24A;
     --warning-soft: #443419;
 
-    --ring: 0 0 0 3px rgba(216, 130, 93, 0.35);
+    --ring: 0 0 0 3px rgba(110, 128, 196, 0.35);
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.45);
   }
@@ -115,8 +115,8 @@ body::before {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(1100px 600px at 90% -10%, rgba(192, 98, 63, 0.06), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(176, 126, 63, 0.05), transparent 60%);
+    radial-gradient(1100px 600px at 90% -10%, rgba(30, 42, 110, 0.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(192, 98, 63, 0.05), transparent 60%);
   z-index: -1;
 }
 

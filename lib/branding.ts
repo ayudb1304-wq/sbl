@@ -1,16 +1,16 @@
 /**
- * Branding tokens. Defaults below; per-season override comes from seasons.branding JSONB
- * (resolved at request time once a logo + colors are wired in).
+ * Branding tokens. Per-season overrides come from seasons.branding JSONB
+ * (resolved at request time once we want SBL 2027 to look different).
  */
 export const branding = {
   appName: "SBL",
   appTagline: "Sysfore Badminton League",
-  logoUrl: null as string | null, // set later when logo is provided
+  logoUrl: "/sbl-logo.png" as string | null,
   colors: {
-    primary: "#0f766e",   // teal-700, placeholder
-    accent: "#f59e0b",    // amber-500, placeholder
-    surface: "#ffffff",
-    text: "#0a0a0a",
-    muted: "#6b7280",
+    primary: "#1E2A6E",   // navy from the logo
+    accent: "#C0623F",    // warm coral, complements navy
+    surface: "#FFFFFF",
+    text: "#0F0D0A",
+    muted: "#76706A",
   },
 } as const

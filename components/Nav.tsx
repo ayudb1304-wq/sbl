@@ -35,6 +35,7 @@ export async function Nav({ seasonName }: { seasonName: string | null }) {
       <Container className="flex h-14 items-center gap-3">
         <MobileMenu
           brand={branding.appName}
+          logoUrl={branding.logoUrl}
           seasonName={seasonName}
           user={user ? { email: user.email, roles: user.roles } : null}
           signOutAction={signOut}
@@ -42,11 +43,13 @@ export async function Nav({ seasonName }: { seasonName: string | null }) {
         <Link href="/" className="flex items-baseline gap-2 font-semibold tracking-tight">
           {branding.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={branding.logoUrl} alt={branding.appName} className="h-7 w-auto" />
+            <img src={branding.logoUrl} alt={branding.appName} className="h-8 w-auto" />
           ) : (
-            <span className="text-lg">{branding.appName}</span>
+            <>
+              <span className="text-lg">{branding.appName}</span>
+              {seasonName && <span className="hidden sm:inline text-xs text-[var(--muted)]">{seasonName}</span>}
+            </>
           )}
-          {seasonName && <span className="hidden sm:inline text-xs text-[var(--muted)]">{seasonName}</span>}
         </Link>
         <div className="ml-auto flex items-center gap-2">
           <Search entries={searchEntries} />
