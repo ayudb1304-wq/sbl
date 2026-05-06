@@ -200,7 +200,7 @@ export async function getTeamById(id: string): Promise<TeamDetail | null> {
     .select(`
       *,
       category:categories ( code, name ),
-      group:groups ( code, name ),
+      group:groups!teams_group_id_fkey ( code, name ),
       team_players ( player:players ( id, full_name, company ) )
     `)
     .eq("id", id)
