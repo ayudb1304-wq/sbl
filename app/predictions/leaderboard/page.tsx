@@ -31,7 +31,15 @@ export default async function LeaderboardPage() {
   }
   const nameById = new Map((profilesRes.data ?? []).map(p => [p.device_id, p.display_name]))
 
-  type Row = { deviceId: string; name: string; points: number; correct: number; total: number; pending: number }
+  type Row = {
+    deviceId: string
+    name: string
+    points: number
+    correct: number
+    picks: number      // total picks across champion + KO
+    pending: number    // unresolved picks
+    resolved: number   // picks already scored (correct + wrong)
+  }
   const rows = new Map<string, Row>()
   function row(deviceId: string): Row {
     const existing = rows.get(deviceId)
@@ -39,19 +47,19 @@ export default async function LeaderboardPage() {
     const r: Row = {
       deviceId,
       name: nameById.get(deviceId) ?? "(anonymous)",
-      points: 0, correct: 0, total: 0, pending: 0,
+      points: 0, correct: 0, picks: 0, pending: 0, resolved: 0,
     }
     rows.set(deviceId, r)
     return r
   }
 
-  // Score per-match KO predictions
   for (const p of predictionsRes.data ?? []) {
     const m = matchById.get(p.match_id)
     if (!m) continue
     const r = row(p.device_id)
-    r.total++
+    r.picks++
     if (m.status === "completed" || m.status === "walkover") {
+      r.resolved++
       if (m.winner_team_id === p.predicted_team_id) {
         r.correct++
         r.points += pointsForStage(m.stage)
@@ -61,12 +69,12 @@ export default async function LeaderboardPage() {
     }
   }
 
-  // Score champion picks
   for (const p of championPicksRes.data ?? []) {
     const f = finalByCat.get(p.category_id)
     const r = row(p.device_id)
-    r.total++
+    r.picks++
     if (f && (f.status === "completed" || f.status === "walkover")) {
+      r.resolved++
       if (f.winnerId === p.predicted_team_id) {
         r.correct++
         r.points += CHAMPION_POINTS
@@ -76,9 +84,30 @@ export default async function LeaderboardPage() {
     }
   }
 
+  // Sort: points desc → correct desc → picks desc → alpha. With no resolved
+  // picks yet (pre-tournament), the picks tiebreaker effectively ranks by
+  // engagement: most picks made = top of the board.
   const ranked = [...rows.values()]
-    .filter(r => r.name !== "(anonymous)") // hide unnamed entries from leaderboard
-    .sort((a, b) => b.points - a.points || b.correct - a.correct || a.name.localeCompare(b.name))
+    .filter(r => r.name !== "(anonymous)")
+    .sort((a, b) =>
+      b.points - a.points
+      || b.correct - a.correct
+      || b.picks - a.picks
+      || a.name.localeCompare(b.name)
+    )
+
+  const anyResolved = ranked.some(r => r.resolved > 0)
+  const totalPicks = ranked.reduce((s, r) => s + r.picks, 0)
+  const playerCount = ranked.length
+
+  let phaseLabel: string
+  if (playerCount === 0) {
+    phaseLabel = "No picks yet — be the first to play."
+  } else if (!anyResolved) {
+    phaseLabel = "Pre-tournament · ranked by picks made until matches start scoring."
+  } else {
+    phaseLabel = `Live scoring · ${playerCount} player${playerCount === 1 ? "" : "s"} on the board.`
+  }
 
   return (
     <Container className="space-y-6">
@@ -89,13 +118,17 @@ export default async function LeaderboardPage() {
           { label: "Leaderboard" },
         ]} />
         <h1 className="text-2xl font-semibold tracking-tight">Leaderboard</h1>
-        <p className="text-sm text-[var(--muted)]">
-          Champion picks + KO match picks. {ranked.length} player{ranked.length === 1 ? "" : "s"} on the board.{" "}
-          <Link href="/predictions" className="text-[var(--primary)] hover:underline">Make picks →</Link>
-        </p>
+        <p className="text-sm text-[var(--muted)]">{phaseLabel}</p>
+        {playerCount > 0 && (
+          <div className="flex flex-wrap gap-x-6 gap-y-1 pt-1 text-sm text-[var(--muted)]">
+            <span><span className="font-semibold text-[var(--text)]">{playerCount}</span> {playerCount === 1 ? "player" : "players"}</span>
+            <span><span className="font-semibold text-[var(--text)]">{totalPicks}</span> picks made</span>
+            <Link href="/predictions" className="text-[var(--primary)] hover:underline">Make picks →</Link>
+          </div>
+        )}
       </header>
 
-      <LeaderboardClient rows={ranked} />
+      <LeaderboardClient rows={ranked} pointsActive={anyResolved} />
     </Container>
   )
 }

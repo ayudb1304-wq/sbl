@@ -17,7 +17,7 @@ export default async function PredictionsPage() {
 
   const admin = createAdminClient()
 
-  const [catsRes, koRes, teamsRes, finalsRes] = await Promise.all([
+  const [catsRes, koRes, teamsRes, finalsRes, profilesRes, championPicksRes] = await Promise.all([
     admin.from("categories").select("id, code, name, sort_order").eq("season_id", season.id).order("sort_order"),
     admin.from("matches").select(`
       id, stage, round_label, status, scheduled_at, category_id, winner_team_id,
@@ -27,7 +27,12 @@ export default async function PredictionsPage() {
     admin.from("teams").select("id, name, seed, category_id").eq("season_id", season.id),
     admin.from("matches").select("category_id, status, winner_team_id")
       .eq("season_id", season.id).eq("stage", "final"),
+    admin.from("participant_profiles").select("device_id"),
+    admin.from("champion_picks").select("device_id").eq("season_id", season.id),
   ])
+  const playerCount = profilesRes.data?.length ?? 0
+  const activeDevices = new Set((championPicksRes.data ?? []).map(p => p.device_id))
+  const playingCount = activeDevices.size
 
   const cats = catsRes.data ?? []
   const koMatches = (koRes.data ?? []) as unknown as Array<{
@@ -67,6 +72,21 @@ export default async function PredictionsPage() {
           Two ways to play. <strong>Pick the champions</strong> for each category — 4 pts per correct champion, lockable any time. Once the bracket resolves on match day, individual KO match picks open up too: <strong>1 pt</strong> QF, <strong>2 pts</strong> SF, <strong>4 pts</strong> Final.
           Climb the <Link href="/predictions/leaderboard" className="text-[var(--primary)] hover:underline">leaderboard</Link>.
         </p>
+        {(playingCount > 0 || playerCount > 0) && (
+          <div className="flex flex-wrap gap-3 pt-1 text-xs text-[var(--muted)]">
+            {playingCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
+                <strong className="text-[var(--text)]">{playingCount}</strong> playing along
+              </span>
+            )}
+            {playerCount > playingCount && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1">
+                <strong className="text-[var(--text)]">{playerCount}</strong> on the board
+              </span>
+            )}
+          </div>
+        )}
       </header>
 
       <NameGate>
