@@ -5,6 +5,7 @@ import { getDeviceId } from "@/lib/device"
 import { postCheer } from "@/lib/actions/engagement"
 
 type Counts = { clap: number; fire: number }
+const POLL_MS = 3000
 
 export function Cheers({
   matchId,
@@ -18,21 +19,37 @@ export function Cheers({
   const [floats, setFloats] = useState<{ id: number; type: "clap" | "fire"; x: number }[]>([])
   const idRef = useRef(0)
 
-  // Realtime: increment counters when anyone else cheers.
+  // Polling — aggregates instead of per-tap broadcast. Avoids the
+  // N-subscribers-x-N-taps multiplication that would blow through the
+  // Supabase Realtime message budget at scale. Pauses when tab is hidden.
   useEffect(() => {
+    let cancelled = false
     const sb = createClient()
-    const ch = sb.channel(`cheers:${matchId}`)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "cheers",
-        filter: `match_id=eq.${matchId}`,
-      }, (payload) => {
-        const t = (payload.new as { cheer_type: "clap" | "fire" }).cheer_type
-        setCounts(c => ({ ...c, [t]: c[t] + 1 }))
-      })
-      .subscribe()
-    return () => { sb.removeChannel(ch) }
+
+    async function fetchCounts() {
+      if (typeof document !== "undefined" && document.hidden) return
+      const [a, b] = await Promise.all([
+        sb.from("cheers").select("id", { count: "exact", head: true }).eq("match_id", matchId).eq("cheer_type", "clap"),
+        sb.from("cheers").select("id", { count: "exact", head: true }).eq("match_id", matchId).eq("cheer_type", "fire"),
+      ])
+      if (cancelled) return
+      // Don't clobber an optimistic local bump that's still in flight: take the
+      // larger of (server count, current local count) per type.
+      setCounts(curr => ({
+        clap: Math.max(curr.clap, a.count ?? 0),
+        fire: Math.max(curr.fire, b.count ?? 0),
+      }))
+    }
+
+    const t = setInterval(fetchCounts, POLL_MS)
+    // Refresh immediately on tab regain focus so the user catches up faster.
+    function onVisibility() { if (!document.hidden) fetchCounts() }
+    document.addEventListener("visibilitychange", onVisibility)
+    return () => {
+      cancelled = true
+      clearInterval(t)
+      document.removeEventListener("visibilitychange", onVisibility)
+    }
   }, [matchId])
 
   function fly(type: "clap" | "fire") {

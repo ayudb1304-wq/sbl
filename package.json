@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "seed:2026": "tsx scripts/seed-sbl-2026.ts",
-    "demo:simulate": "tsx scripts/demo-simulate.ts"
+    "demo:simulate": "tsx scripts/demo-simulate.ts",
+    "loadtest": "tsx scripts/loadtest.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.0",
