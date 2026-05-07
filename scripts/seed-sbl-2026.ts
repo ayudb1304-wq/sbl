@@ -24,7 +24,7 @@ import path from 'node:path'
 // ---------- Config ----------
 const SEASON_YEAR = 2026
 const SEASON_NAME = 'SBL 2026'
-const TOURNAMENT_DATE = '2026-09-13' // Saturday — admin can edit later via dashboard
+const TOURNAMENT_DATE = '2026-05-23' // Saturday — admin can edit later via dashboard
 const TZ_OFFSET = '+05:30'           // IST (Bengaluru)
 const FIXTURES_PATH = path.join(process.cwd(), 'data', 'SBL_2026_Fixtures.xlsx')
 
