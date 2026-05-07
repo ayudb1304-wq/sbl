@@ -1,6 +1,7 @@
 import { Container } from "@/components/Container"
 import { MatchCard } from "@/components/MatchCard"
 import { LiveScoreSubscriber } from "@/components/LiveScoreSubscriber"
+import { MatchDay } from "@/components/MatchDay"
 import { YourTeamsRail } from "@/components/YourTeamsRail"
 import { CategoryCarousel, type CarouselCategory } from "@/components/CategoryCarousel"
 import { getActiveSeason, getCategories, getSeasonMatches, getStandingsForGroup } from "@/lib/queries"
@@ -100,12 +101,17 @@ export default async function Home() {
         </div>
       </section>
 
+      {season.starts_at && season.ends_at && (
+        <MatchDay startsAt={season.starts_at} endsAt={season.ends_at} />
+      )}
+
       <YourTeamsRail matches={matches} teamsById={teamsById} />
 
       <Section
         title={live.length > 0 ? `Live now (${live.length})` : "No matches in progress"}
         empty={live.length === 0 ? "Check back when matches are underway." : null}
       >
+        <span id="live" className="block -mt-4 pt-4" />
         <Grid>{live.map(m => <MatchCard key={m.id} m={m} />)}</Grid>
       </Section>
 
