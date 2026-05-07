@@ -23,15 +23,20 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY
 const SITE = process.env.SITE || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
 const USERS = Number(process.env.LOAD_USERS || 250)
 const DURATION_MS = Number(process.env.LOAD_DURATION_S || 60) * 1000
 const RAMP_MS = Number(process.env.LOAD_RAMP_MS || 30) // stagger between user starts
 
-if (!URL || !ANON) {
-  console.error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY")
+if (!URL || !ANON || !SERVICE) {
+  console.error("Missing NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY")
   process.exit(1)
 }
+
+// Single service-role client used for cheer inserts (mirrors what postCheer
+// does server-side in the real app). Anon RLS blocks direct cheer inserts.
+const writeClient = createClient(URL, SERVICE, { auth: { persistSession: false } })
 
 type Tally = { ok: number; fail: number; latency: number[] }
 const stats: Record<string, Tally> = {
@@ -116,7 +121,7 @@ async function user(id: number, deadline: number, matchIds: string[]) {
       })
     } else {
       await timed("cheer", async () => {
-        const { error } = await sb.from("cheers").insert({
+        const { error } = await writeClient.from("cheers").insert({
           match_id: myMatchId,
           device_id: `loadtest-${id}`,
           cheer_type: Math.random() < 0.5 ? "clap" : "fire",

@@ -472,6 +472,12 @@ export type Database = {
         Update: { device_id?: string; display_name?: string; created_at?: string; updated_at?: string }
         Relationships: []
       }
+      announcements: {
+        Row: { id: string; message: string; tone: Database["public"]["Enums"]["announcement_tone"]; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; message: string; tone?: Database["public"]["Enums"]["announcement_tone"]; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; message?: string; tone?: Database["public"]["Enums"]["announcement_tone"]; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
       cheers: {
         Row: { id: string; match_id: string; device_id: string; cheer_type: Database["public"]["Enums"]["cheer_type"]; created_at: string }
         Insert: { id?: string; match_id: string; device_id: string; cheer_type: Database["public"]["Enums"]["cheer_type"]; created_at?: string }
@@ -592,6 +598,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      announcement_tone: "info" | "success" | "warning" | "urgent"
       cheer_type: "clap" | "fire"
       game_status: "pending" | "in_progress" | "completed"
       match_stage: "group" | "qf" | "sf" | "final"

@@ -93,6 +93,7 @@ export function MobileMenu({
         { href: "/admin/categories/MB",  label: "MB review" },
         { href: "/admin/categories/MI",  label: "MI review" },
         { href: "/admin/categories/W",   label: "W review" },
+        { href: "/admin/announcements",  label: "Notice board" },
         { href: "/admin/users",          label: "Users" },
         { href: "/admin/seasons",        label: "Seasons" },
       ],

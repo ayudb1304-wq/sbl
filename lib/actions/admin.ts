@@ -271,6 +271,40 @@ export async function createSeason(args: { year: number; name: string }): Promis
   } catch (e) { return fail(e) }
 }
 
+// ---------- Announcements ----------
+
+export async function postAnnouncement(args: {
+  message: string
+  tone: "info" | "success" | "warning" | "urgent"
+}): Promise<Ok | Err> {
+  try {
+    await requireRole(["admin"])
+    const message = args.message.trim()
+    if (message.length < 1) return { ok: false, error: "Message cannot be empty." }
+    if (message.length > 280) return { ok: false, error: "Keep it under 280 characters." }
+    const admin = createAdminClient()
+    // Deactivate any current active row first (partial unique index requires it)
+    await admin.from("announcements").update({ is_active: false }).eq("is_active", true)
+    const { error } = await admin
+      .from("announcements")
+      .insert({ message, tone: args.tone, is_active: true })
+    if (error) throw error
+    revalidatePath("/", "layout")
+    return { ok: true }
+  } catch (e) { return fail(e) }
+}
+
+export async function clearAnnouncement(): Promise<Ok | Err> {
+  try {
+    await requireRole(["admin"])
+    const admin = createAdminClient()
+    const { error } = await admin.from("announcements").update({ is_active: false }).eq("is_active", true)
+    if (error) throw error
+    revalidatePath("/", "layout")
+    return { ok: true }
+  } catch (e) { return fail(e) }
+}
+
 export async function setActiveSeason(seasonId: string): Promise<Ok | Err> {
   try {
     await requireRole(["admin"])

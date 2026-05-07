@@ -30,6 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <AdminLink href="/admin/categories/MI">MI</AdminLink>
           <AdminLink href="/admin/categories/W">W</AdminLink>
           <span className="mx-1 h-4 w-px bg-[var(--border)]" />
+          <AdminLink href="/admin/announcements">Notice</AdminLink>
           <AdminLink href="/admin/users">Users</AdminLink>
           <AdminLink href="/admin/seasons">Seasons</AdminLink>
         </nav>
