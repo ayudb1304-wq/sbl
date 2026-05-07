@@ -108,6 +108,40 @@ export async function setChampionPick(args: {
   return { ok: true }
 }
 
+export async function clearChampionPick(args: {
+  deviceId: string
+  seasonId: string
+  categoryId: string
+}): Promise<Result> {
+  const err = valid(args)
+  if (err) return { ok: false, error: err }
+  const admin = createAdminClient()
+
+  // Same locking guard as setChampionPick — can't undo a pick after the Final starts.
+  const { data: finalMatch } = await admin
+    .from("matches")
+    .select("status")
+    .eq("season_id", args.seasonId)
+    .eq("category_id", args.categoryId)
+    .eq("stage", "final")
+    .maybeSingle<{ status: string }>()
+  if (finalMatch && finalMatch.status !== "scheduled") {
+    return { ok: false, error: "Final has already started — pick is locked." }
+  }
+
+  const { error } = await admin
+    .from("champion_picks")
+    .delete()
+    .eq("device_id", args.deviceId)
+    .eq("season_id", args.seasonId)
+    .eq("category_id", args.categoryId)
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath("/predictions")
+  revalidatePath("/predictions/leaderboard")
+  return { ok: true }
+}
+
 // ---------- Predictions ----------
 
 export async function setPrediction(args: {
@@ -139,6 +173,46 @@ export async function setPrediction(args: {
       match_id: args.matchId,
       predicted_team_id: args.predictedTeamId,
     }, { onConflict: "device_id,match_id" })
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath("/predictions")
+  revalidatePath("/predictions/leaderboard")
+  return { ok: true }
+}
+
+/**
+ * Clear all KO match predictions in one category for this device. Only
+ * removes picks for matches still scheduled — already-started matches
+ * keep their (now-locked) prediction so leaderboard scoring stays honest.
+ */
+export async function clearKoPredictionsForCategory(args: {
+  deviceId: string
+  seasonId: string
+  categoryId: string
+}): Promise<Result> {
+  const err = valid(args)
+  if (err) return { ok: false, error: err }
+  const admin = createAdminClient()
+
+  // Find all still-scheduled KO matches in this category
+  const { data: matches, error: mErr } = await admin
+    .from("matches")
+    .select("id")
+    .eq("season_id", args.seasonId)
+    .eq("category_id", args.categoryId)
+    .neq("stage", "group")
+    .eq("status", "scheduled")
+  if (mErr) return { ok: false, error: mErr.message }
+  const matchIds = (matches ?? []).map(m => m.id)
+  if (matchIds.length === 0) {
+    return { ok: true } // nothing to do
+  }
+
+  const { error } = await admin
+    .from("predictions")
+    .delete()
+    .eq("device_id", args.deviceId)
+    .in("match_id", matchIds)
   if (error) return { ok: false, error: error.message }
 
   revalidatePath("/predictions")

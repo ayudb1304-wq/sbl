@@ -80,8 +80,9 @@ export default async function PredictionsPage() {
             </div>
             {anyPickable ? (
               <PredictionsLoader
+                seasonId={season.id}
                 matches={koMatches}
-                catCodeById={Object.fromEntries(cats.map(c => [c.id, c.code]))}
+                categories={cats.map(c => ({ id: c.id, code: c.code }))}
               />
             ) : (
               <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-6 text-center">

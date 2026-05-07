@@ -2,7 +2,7 @@
 import { useEffect, useState, useTransition } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { getDeviceId } from "@/lib/device"
-import { setChampionPick } from "@/lib/actions/engagement"
+import { clearChampionPick, setChampionPick } from "@/lib/actions/engagement"
 import { categoryShortName } from "@/lib/format"
 
 export type ChampionCategory = {
@@ -66,6 +66,20 @@ export function ChampionPicks({
     })
   }
 
+  function clear(categoryId: string) {
+    if (pending) return
+    const prev = picks[categoryId]
+    setError(null)
+    setPicks(p => { const copy = { ...p }; delete copy[categoryId]; return copy }) // optimistic
+    start(async () => {
+      const res = await clearChampionPick({ deviceId: getDeviceId(), seasonId, categoryId })
+      if (!res.ok) {
+        setError(res.error)
+        if (prev) setPicks(p => ({ ...p, [categoryId]: prev }))
+      }
+    })
+  }
+
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between">
@@ -82,6 +96,7 @@ export function ChampionPicks({
             cat={cat}
             picked={picks[cat.id] ?? null}
             onPick={(teamId) => pick(cat.id, teamId)}
+            onClear={() => clear(cat.id)}
             disabled={pending}
           />
         ))}
@@ -92,11 +107,12 @@ export function ChampionPicks({
 }
 
 function CategoryColumn({
-  cat, picked, onPick, disabled,
+  cat, picked, onPick, onClear, disabled,
 }: {
   cat: ChampionCategory
   picked: string | null
   onPick: (teamId: string) => void
+  onClear: () => void
   disabled: boolean
 }) {
   const finalDone = cat.finalStatus === "completed" || cat.finalStatus === "walkover"
@@ -127,8 +143,20 @@ function CategoryColumn({
 
       {pickedTeam && (
         <div className="mt-3 rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 text-sm">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
-            {finalDone ? (isCorrect ? "Your pick · correct ✓" : "Your pick · ✗") : locked ? "Your pick · locked" : "Your pick"}
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">
+              {finalDone ? (isCorrect ? "Your pick · correct ✓" : "Your pick · ✗") : locked ? "Your pick · locked" : "Your pick"}
+            </div>
+            {!locked && (
+              <button
+                onClick={onClear}
+                disabled={disabled}
+                className="rounded px-1.5 py-0.5 text-[10px] font-semibold text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--text)] disabled:opacity-40"
+                title="Clear pick"
+              >
+                Clear
+              </button>
+            )}
           </div>
           <div className="mt-0.5 font-medium">{pickedTeam.name}</div>
         </div>
