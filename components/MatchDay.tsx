@@ -105,20 +105,37 @@ export function MatchDay({
             <p className="text-sm text-[var(--muted-strong)]">
               Saturday, 23 May 2026 · 9:00 AM – 5:00 PM IST · 6 courts · 45 teams
             </p>
-            <div className="flex flex-wrap gap-2 pt-1">
-              <Link
-                href="/predictions"
-                style={{ backgroundColor: "var(--primary)" }}
-                className="rounded-md px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-              >
-                Make your bracket picks
-              </Link>
-              <Link
-                href="/categories/MB"
-                className="rounded-md border border-[var(--border)] px-4 py-2 text-sm font-medium hover:border-[var(--primary)]"
-              >
-                Preview the draws
-              </Link>
+            <div className="space-y-2 pt-1">
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href="/predictions"
+                  style={{ backgroundColor: "var(--primary)" }}
+                  className="rounded-md px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                >
+                  Pick the champions
+                </Link>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <span className="text-xs text-[var(--muted)]">Preview the draws:</span>
+                <Link
+                  href="/categories/MB"
+                  className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:border-[var(--primary)]"
+                >
+                  Men&apos;s Beginner
+                </Link>
+                <Link
+                  href="/categories/MI"
+                  className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:border-[var(--primary)]"
+                >
+                  Men&apos;s Intermediate
+                </Link>
+                <Link
+                  href="/categories/W"
+                  className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs font-medium hover:border-[var(--primary)]"
+                >
+                  Women&apos;s
+                </Link>
+              </div>
             </div>
           </div>
         )}

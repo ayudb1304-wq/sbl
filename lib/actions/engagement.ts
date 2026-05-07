@@ -58,6 +58,56 @@ export async function postCheer(args: {
   return { ok: true }
 }
 
+// ---------- Champion picks ----------
+
+export async function setChampionPick(args: {
+  deviceId: string
+  seasonId: string
+  categoryId: string
+  predictedTeamId: string
+}): Promise<Result> {
+  const err = valid(args)
+  if (err) return { ok: false, error: err }
+  const admin = createAdminClient()
+
+  // Validate the team is in this category + season
+  const { data: team } = await admin
+    .from("teams")
+    .select("id, category_id, season_id")
+    .eq("id", args.predictedTeamId)
+    .maybeSingle<{ id: string; category_id: string; season_id: string }>()
+  if (!team) return { ok: false, error: "Team not found." }
+  if (team.category_id !== args.categoryId || team.season_id !== args.seasonId) {
+    return { ok: false, error: "Team must belong to that category." }
+  }
+
+  // Lock once that category's Final has started
+  const { data: finalMatch } = await admin
+    .from("matches")
+    .select("status")
+    .eq("season_id", args.seasonId)
+    .eq("category_id", args.categoryId)
+    .eq("stage", "final")
+    .maybeSingle<{ status: string }>()
+  if (finalMatch && finalMatch.status !== "scheduled") {
+    return { ok: false, error: "Final has already started — picks are locked." }
+  }
+
+  const { error } = await admin
+    .from("champion_picks")
+    .upsert({
+      device_id: args.deviceId,
+      season_id: args.seasonId,
+      category_id: args.categoryId,
+      predicted_team_id: args.predictedTeamId,
+    }, { onConflict: "device_id,season_id,category_id" })
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath("/predictions")
+  revalidatePath("/predictions/leaderboard")
+  return { ok: true }
+}
+
 // ---------- Predictions ----------
 
 export async function setPrediction(args: {

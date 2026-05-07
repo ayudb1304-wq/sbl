@@ -478,6 +478,12 @@ export type Database = {
         Update: { id?: string; message?: string; tone?: Database["public"]["Enums"]["announcement_tone"]; is_active?: boolean; created_at?: string; updated_at?: string }
         Relationships: []
       }
+      champion_picks: {
+        Row: { device_id: string; season_id: string; category_id: string; predicted_team_id: string; created_at: string; updated_at: string }
+        Insert: { device_id: string; season_id: string; category_id: string; predicted_team_id: string; created_at?: string; updated_at?: string }
+        Update: { device_id?: string; season_id?: string; category_id?: string; predicted_team_id?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
       cheers: {
         Row: { id: string; match_id: string; device_id: string; cheer_type: Database["public"]["Enums"]["cheer_type"]; created_at: string }
         Insert: { id?: string; match_id: string; device_id: string; cheer_type: Database["public"]["Enums"]["cheer_type"]; created_at?: string }
