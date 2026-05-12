@@ -17,9 +17,16 @@ export type CategoryWithGroups = {
   groups: { id: string; code: string; name: string; sort_order: number }[]
 }
 
+export type EnrichedTeam = {
+  id: string
+  name: string
+  seed: number | null
+  team_players: { player: { id: string; full_name: string } }[]
+}
+
 export type EnrichedMatch = Match & {
-  team_a: { id: string; name: string; seed: number | null } | null
-  team_b: { id: string; name: string; seed: number | null } | null
+  team_a: EnrichedTeam | null
+  team_b: EnrichedTeam | null
   category: { code: string; name: string }
   group: { code: string; name: string } | null
   games: { id: string; game_number: number; team_a_score: number; team_b_score: number; status: string }[]
@@ -98,8 +105,8 @@ export function feederLabel(src: FeederSource | null | undefined): string {
 
 const matchSelect = `
   *,
-  team_a:teams!matches_team_a_id_fkey ( id, name, seed ),
-  team_b:teams!matches_team_b_id_fkey ( id, name, seed ),
+  team_a:teams!matches_team_a_id_fkey ( id, name, seed, team_players ( player:players ( id, full_name ) ) ),
+  team_b:teams!matches_team_b_id_fkey ( id, name, seed, team_players ( player:players ( id, full_name ) ) ),
   category:categories ( code, name ),
   group:groups ( code, name ),
   games ( id, game_number, team_a_score, team_b_score, status )

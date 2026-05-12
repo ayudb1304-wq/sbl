@@ -20,6 +20,8 @@ export default async function ScorerMatchPage({ params }: { params: Promise<{ id
 
   const teamAName = m.team_a?.name ?? feederLabel(m.team_a_source as FeederSource | null)
   const teamBName = m.team_b?.name ?? feederLabel(m.team_b_source as FeederSource | null)
+  const playersA = m.team_a?.team_players.map(tp => tp.player.full_name).join(" & ") ?? null
+  const playersB = m.team_b?.team_players.map(tp => tp.player.full_name).join(" & ") ?? null
   const games = [...m.games]
     .sort((a, b) => a.game_number - b.game_number)
     .map(g => ({
@@ -57,6 +59,11 @@ export default async function ScorerMatchPage({ params }: { params: Promise<{ id
           <h1 className="text-2xl font-semibold tracking-tight">{teamAName} <span className="text-[var(--muted)]">vs</span> {teamBName}</h1>
           <StatusPill status={m.status} />
         </div>
+        {(playersA || playersB) && (
+          <p className="text-sm text-[var(--muted)]">
+            {playersA ?? "—"} <span className="opacity-60">vs</span> {playersB ?? "—"}
+          </p>
+        )}
         <p className="text-sm text-[var(--muted)]">
           {m.court} · {dateIST(m.scheduled_at)} · {timeIST(m.scheduled_at)} IST · {format === "single" ? "1 game" : "Best of 3"}
         </p>

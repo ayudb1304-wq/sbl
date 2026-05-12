@@ -20,6 +20,8 @@ export default async function AdminMatchPage({ params }: { params: Promise<{ id:
 
   const teamAName = m.team_a?.name ?? feederLabel(m.team_a_source as FeederSource | null)
   const teamBName = m.team_b?.name ?? feederLabel(m.team_b_source as FeederSource | null)
+  const playersA = m.team_a?.team_players.map(tp => tp.player.full_name).join(" & ") ?? null
+  const playersB = m.team_b?.team_players.map(tp => tp.player.full_name).join(" & ") ?? null
   const games = [...m.games]
     .sort((a, b) => a.game_number - b.game_number)
     .map(g => ({
@@ -67,6 +69,11 @@ export default async function AdminMatchPage({ params }: { params: Promise<{ id:
           <StatusPill status={m.status} />
           {m.locked && <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">LOCKED</span>}
         </div>
+        {(playersA || playersB) && (
+          <p className="text-sm text-[var(--muted)]">
+            {playersA ?? "—"} <span className="opacity-60">vs</span> {playersB ?? "—"}
+          </p>
+        )}
         <p className="text-sm text-[var(--muted)]">
           {m.court} · {dateIST(m.scheduled_at)} · {timeIST(m.scheduled_at)} IST · {format === "single" ? "1 game" : "Best of 3"}
         </p>

@@ -23,6 +23,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
 
   const teamA = m.team_a?.name ?? feederLabel(m.team_a_source as FeederSource | null)
   const teamB = m.team_b?.name ?? feederLabel(m.team_b_source as FeederSource | null)
+  const playersA = m.team_a?.team_players.map(tp => tp.player.full_name).join(" & ") ?? null
+  const playersB = m.team_b?.team_players.map(tp => tp.player.full_name).join(" & ") ?? null
   const games = [...m.games].sort((a, b) => a.game_number - b.game_number)
   const isWinnerA = m.winner_team_id && m.winner_team_id === m.team_a_id
   const isWinnerB = m.winner_team_id && m.winner_team_id === m.team_b_id
@@ -71,9 +73,9 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
 
       <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6">
         <div className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-4 text-lg">
-          <TeamRow name={teamA} link={m.team_a?.id ? `/teams/${m.team_a.id}` : null} winner={!!isWinnerA} />
+          <TeamRow name={teamA} players={playersA} link={m.team_a?.id ? `/teams/${m.team_a.id}` : null} winner={!!isWinnerA} />
           <ScoreRow values={games.map(g => g.team_a_score)} winner={!!isWinnerA} />
-          <TeamRow name={teamB} link={m.team_b?.id ? `/teams/${m.team_b.id}` : null} winner={!!isWinnerB} />
+          <TeamRow name={teamB} players={playersB} link={m.team_b?.id ? `/teams/${m.team_b.id}` : null} winner={!!isWinnerB} />
           <ScoreRow values={games.map(g => g.team_b_score)} winner={!!isWinnerB} />
         </div>
         {m.walkover_reason && (
@@ -114,9 +116,14 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   )
 }
 
-function TeamRow({ name, link, winner }: { name: string; link: string | null; winner: boolean }) {
-  const inner = <span className={winner ? "font-semibold" : ""}>{name}</span>
-  return <div className="self-center">{link ? <Link href={link} className="hover:underline">{inner}</Link> : inner}</div>
+function TeamRow({ name, players, link, winner }: { name: string; players: string | null; link: string | null; winner: boolean }) {
+  const nameEl = <span className={winner ? "font-semibold" : ""}>{name}</span>
+  return (
+    <div className="self-center">
+      <div>{link ? <Link href={link} className="hover:underline">{nameEl}</Link> : nameEl}</div>
+      {players && <div className="text-sm text-[var(--muted)]">{players}</div>}
+    </div>
+  )
 }
 
 function ScoreRow({ values, winner }: { values: number[]; winner: boolean }) {
