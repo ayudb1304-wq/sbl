@@ -8,6 +8,7 @@ import { Cheers } from "@/components/Cheers"
 import { feederLabel, getMatchById } from "@/lib/queries"
 import { dateIST, stageLabel, timeIST } from "@/lib/format"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getCurrentUser } from "@/lib/auth"
 import type { FeederSource } from "@/lib/supabase/types"
 
 export const dynamic = "force-dynamic"
@@ -16,6 +17,9 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const { id } = await params
   const m = await getMatchById(id)
   if (!m) return notFound()
+  const user = await getCurrentUser()
+  const isScorer = !!user?.roles.includes("scorer")
+  const isAdmin = !!user?.roles.includes("admin")
 
   const teamA = m.team_a?.name ?? feederLabel(m.team_a_source as FeederSource | null)
   const teamB = m.team_b?.name ?? feederLabel(m.team_b_source as FeederSource | null)
@@ -39,11 +43,23 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
     <Container className="space-y-6">
       <LiveScoreSubscriber matchId={id} />
       <header className="space-y-2">
-        <Breadcrumbs items={[
-          { label: "Home", href: "/" },
-          { label: m.category.name, href: `/categories/${m.category.code}` },
-          { label: stageLabel(m.stage, m.round_label) },
-        ]} />
+        <div className="flex items-center justify-between gap-2">
+          <Breadcrumbs items={[
+            { label: "Home", href: "/" },
+            { label: m.category.name, href: `/categories/${m.category.code}` },
+            { label: stageLabel(m.stage, m.round_label) },
+          ]} />
+          {(isScorer || isAdmin) && (
+            <div className="flex gap-3 text-xs">
+              {isScorer && (
+                <Link href={`/scorer/match/${id}`} className="text-[var(--primary)] hover:underline">Score this match ↗</Link>
+              )}
+              {isAdmin && (
+                <Link href={`/admin/match/${id}`} className="text-[var(--muted)] hover:underline">Admin view ↗</Link>
+              )}
+            </div>
+          )}
+        </div>
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">Match</h1>
           <StatusPill status={m.status} />
